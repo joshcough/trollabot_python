@@ -3,11 +3,13 @@
 import irc.client
 import os
 
+from app.trollabot.database import DB_API
+
 
 class TwitchIRCBot:
-    def __init__(self, connection, streams, quotes):
+    def __init__(self, connection, db_api: DB_API):
         self.connection = connection
-        self.channels = streams.get_joined_streams()
+        self.channels = db_api.streams.get_joined_streams()
         print(f'channels: {self.channels}')
 
         # Bind event handlers to the connection object

@@ -125,6 +125,12 @@ class QuotesInterface:
         self.session.commit()
 
 
+class DB_API:
+    def __init__(self, db_session):
+        self.streams = StreamsInterface(db_session)
+        self.quotes = QuotesInterface(db_session)
+
+
 class DbConfigInterface(ABC):
     @property
     @abstractmethod

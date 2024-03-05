@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
-from app.trollabot.database import Base, EnvDbConfig, ContainerDbConfig, StreamsInterface, QuotesInterface
+from app.trollabot.database import Base, EnvDbConfig, ContainerDbConfig, StreamsInterface, QuotesInterface, DB_API
 from app.trollabot.irc_bot import IrcConfig, TwitchIRCBot, setup_connection
 
 
@@ -13,16 +13,16 @@ def run_with_pg_connection_string(conn_str):
     Base.metadata.create_all(engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db_session = TestingSessionLocal()
-    streams = StreamsInterface(db_session)
-    quotes = QuotesInterface(db_session)
+
+    db_api = DB_API(db_session)
 
     # TODO: remove these before deploying
     # but not until we write the !join command
-    streams.insert_stream("artofthetroll", "artofthetroll")
-    streams.join("artofthetroll")
+    db_api.streams.insert_stream("artofthetroll", "artofthetroll")
+    db_api.streams.join("artofthetroll")
 
     reactor, connection = setup_connection(irc_config=IrcConfig())
-    bot = TwitchIRCBot(connection, streams, quotes)
+    bot = TwitchIRCBot(connection, db_api)
     reactor.process_forever()
 
     db_session.close()
