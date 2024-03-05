@@ -1,0 +1,5 @@
+to install, i have to do:
+
+`python3 -m pip install library-name`
+
+for some reason, other commands dont seem to work properly and i end up getting no module found errors or wahtever.
