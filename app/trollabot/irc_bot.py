@@ -58,4 +58,3 @@ def setup_connection(irc_config):
     except irc.client.ServerConnectionError as e:
         print(sys.exc_info()[1])
         raise SystemExit(1) from e
-

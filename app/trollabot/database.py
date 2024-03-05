@@ -1,8 +1,12 @@
+from abc import ABC, abstractmethod
+import os
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, select, update, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, Session
+from testcontainers.postgres import PostgresContainer
 
 Base = declarative_base()
+
 
 class Stream(Base):
     __tablename__ = 'streams'
@@ -17,6 +21,7 @@ class Stream(Base):
 
     def __repr__(self):
         return f"<Stream(id={self.id}, name='{self.name}', joined={self.joined}, added_by='{self.added_by}', added_at={self.added_at})>"
+
 
 class Quote(Base):
     __tablename__ = 'quotes'
@@ -71,6 +76,7 @@ class StreamsInterface:
     def join(self, channel_name):
         self.session.execute(update(Stream).where(Stream.name == channel_name).values(joined=True))
 
+
 class QuotesInterface:
     def __init__(self, session: Session):
         self.session = session
@@ -111,10 +117,89 @@ class QuotesInterface:
         return self.session.get(Quote, inserted_quote_id)
 
     def delete_quote(self, channel_name, qid, username):
-        # Execute the statement
         self.session.execute(
             update(Quote).
                 where(Quote.qid == qid).
                 where(Quote.stream.has(name=channel_name)).
                 values(deleted=True, deleted_at=func.now(), deleted_by=username))
         self.session.commit()
+
+
+class DbConfigInterface(ABC):
+    @property
+    @abstractmethod
+    def server(self):
+        pass
+
+    @property
+    @abstractmethod
+    def port(self):
+        pass
+
+    @property
+    @abstractmethod
+    def username(self):
+        pass
+
+    @property
+    @abstractmethod
+    def password(self):
+        pass
+
+    @property
+    @abstractmethod
+    def database(self):
+        pass
+
+    def get_connection_string(self):
+        """Constructs and returns a PostgreSQL connection string."""
+        return f"postgresql://{self.username}:{self.password}@{self.server}:{self.port}/{self.database}"
+
+
+class EnvDbConfig(DbConfigInterface):
+    @property
+    def server(self):
+        return os.getenv('PG_HOST')
+
+    @property
+    def port(self):
+        return os.getenv('PG_PORT', '5432')
+
+    @property
+    def username(self):
+        return os.getenv('PG_USER')
+
+    @property
+    def password(self):
+        return os.getenv('PG_PASS')
+
+    @property
+    def database(self):
+        return os.getenv('PG_DATABASE')
+
+
+class ContainerDbConfig(DbConfigInterface):
+    def __init__(self, container: PostgresContainer):
+        self.container = container
+
+    @property
+    def server(self):
+        # Assuming the container object has a method to get the IP
+        return self.container.get_container_host_ip()
+
+    @property
+    def port(self):
+        # Assuming the container object can map the port
+        return self.container.get_exposed_port(5432)
+
+    @property
+    def username(self):
+        return self.container.POSTGRES_USER
+
+    @property
+    def password(self):
+        return self.container.POSTGRES_PASSWORD
+
+    @property
+    def database(self):
+        return self.container.POSTGRES_DB
