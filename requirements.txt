@@ -1,0 +1,6 @@
+argparse
+irc
+jaraco.logging
+pytest
+testcontainers
+sqlalchemy

@@ -1,70 +1,61 @@
 #! /usr/bin/env python
 
-import argparse
 import irc.client
-import jaraco.logging
 import os
 
-oauth = os.getenv('BOT_TOKEN')
 
-channels = ['#artofthetroll', '#discernaoe']
-# channels = ['#artofthetroll', '#shutanaoe', '#discernaoe']
+class TwitchIRCBot:
+    def __init__(self, connection, streams, quotes):
+        self.connection = connection
+        self.channels = streams.get_joined_streams()
+        print(f'channels: {self.channels}')
 
-def on_connect(connection, event):
-    print(f"on_connect {event}")
-    connection.cap('REQ', 'twitch.tv/membership')
-    connection.cap('REQ', 'twitch.tv/commands')
-    connection.cap('REQ', 'twitch.tv/tags')
+        # Bind event handlers to the connection object
+        self.connection.add_global_handler("welcome", self.on_connect)
+        self.connection.add_global_handler("join", self.on_join)
+        self.connection.add_global_handler("disconnect", self.on_disconnect)
+        self.connection.add_global_handler("pubmsg", self.on_pubmsg)
 
-    for channel in channels:
-        if irc.client.is_channel(channel):
-            connection.join(channel)
+    def on_connect(self, connection, event):
+        print(f"on_connect {event}")
+        connection.cap('REQ', 'twitch.tv/membership')
+        connection.cap('REQ', 'twitch.tv/commands')
+        connection.cap('REQ', 'twitch.tv/tags')
 
-def on_join(connection, event):
-    print(f"on_join {connection} {event}")
-    connection.privmsg(channel, "hola")
+        for channel in self.channels:
+            if irc.client.is_channel(channel.irc_name()):
+                connection.join(channel.irc_name())
+                connection.privmsg(channel.irc_name(), "hola")
 
-def on_disconnect(connection, event):
-    print(f"on_disconnect {connection} {event}")
-    raise SystemExit()
+    # NOTE: i think this is when another user joins
+    def on_join(self, connection, event):
+        print(f"on_join {connection} {event}")
 
-def on_pubmsg(connection, event):
-    print(f"on_pubmsg {connection} {event}")
-    # Print messages received in the channel
-    username = event.source.split('!')[0]
-    print(f"Message from {username}: {event.arguments[0]}")
+    def on_disconnect(self, connection, event):
+        print(f"on_disconnect {connection} {event}")
+        raise SystemExit()
 
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-s', '--server', default = 'irc.chat.twitch.tv', type=str)
-    parser.add_argument('-n', '--nickname', default = 'trollabot_test', type=str)
-    parser.add_argument('-p', '--port', default=6667, type=int)
-    jaraco.logging.add_arguments(parser)
-    res = parser.parse_args()
-    print(res)
-    print(res.server)
-    return res
+    def on_pubmsg(self, connection, event):
+        print(f"on_pubmsg {connection} {event}")
+        username = event.source.split('!')[0]
+        print(f"Message from {username}: {event.arguments[0]}")
 
-def main():
-    print("Welcome to Trollabot 2.0")
 
-    args = get_args()
-    jaraco.logging.setup(args)
+class IrcConfig:
+    server = 'irc.chat.twitch.tv'
+    port = 6667
+    nickname = 'trollabot'
+    oauth = os.getenv('BOT_TOKEN')
 
+
+def setup_connection(irc_config):
+    """Create and return the IRC connection."""
     reactor = irc.client.Reactor()
     try:
-        c = reactor.server().connect(args.server, args.port, args.nickname, password = f'oauth:{oauth}')
-
-    except irc.client.ServerConnectionError:
+        connection = reactor.server().connect(
+            irc_config.server, irc_config.port, irc_config.nickname, password=f'oauth:{irc_config.oauth}')
+        return reactor, connection
+    except irc.client.ServerConnectionError as e:
         print(sys.exc_info()[1])
-        raise SystemExit(1)
+        raise SystemExit(1) from e
 
-    c.add_global_handler("welcome", on_connect)
-    c.add_global_handler("join", on_join)
-    c.add_global_handler("disconnect", on_disconnect)
-    c.add_global_handler("pubmsg", on_pubmsg)
-
-    reactor.process_forever()
-
-if __name__ == '__main__':
-    main()
