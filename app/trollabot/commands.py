@@ -2,7 +2,8 @@ from abc import ABC
 from app.trollabot.database import DB_API
 from dataclasses import dataclass
 import re
-from re import Match, Pattern
+from re import Match as ReMatch, Pattern
+from typing import Callable
 
 from app.trollabot.messages import Message
 
@@ -43,10 +44,10 @@ class AddQuoteAction(QuoteAction):
 class DelQuoteAction(QuoteAction):
     qid: int
 
+@dataclass
 class BotCommand(ABC):
-    def __init__(self, pattern: Pattern, body):
-        self.pattern = pattern
-        self.body = body
+    pattern: Pattern
+    body: Callable[[str, str, ReMatch], Action]
 
     def to_action(self, message: Message):
         match = self.pattern.match(message.text)
@@ -60,7 +61,7 @@ class BotCommand(ABC):
 ###
 join_stream_pattern = re.compile(r"^!join\s+(.+)")
 
-def join_stream(channel_name: str, username: str, match: Match):
+def join_stream(channel_name: str, username: str, match: ReMatch):
     stream_to_join = match.group(1)
     return JoinStreamAction(channel_name, username, stream_to_join)
 
@@ -71,7 +72,7 @@ join_stream_command = BotCommand(join_stream_pattern, join_stream)
 ###
 part_stream_pattern = re.compile(r"^!part\s+(.+)")
 
-def part_stream(channel_name: str, username: str, match: Match):
+def part_stream(channel_name: str, username: str, match: ReMatch):
     stream_to_part = match.group(1)
     return PartStreamAction(channel_name, username, stream_to_part)
 
@@ -82,7 +83,7 @@ part_stream_command = BotCommand(part_stream_pattern, part_stream)
 ###
 get_quote_pattern = re.compile(r"^!quote(?:\s+(\d+))?$")
 
-def get_quote(channel_name: str, username: str, match: Match):
+def get_quote(channel_name: str, username: str, match: ReMatch):
     qid = match.group(1)
     if qid:
         return GetExactQuoteAction(channel_name, username, int(qid))
@@ -96,7 +97,7 @@ get_quote_command = BotCommand(get_quote_pattern, get_quote)
 ###
 add_quote_pattern = re.compile(r"^!addQuote\s+(.+)")
 
-def add_quote(channel_name: str, username: str, match: Match):
+def add_quote(channel_name: str, username: str, match: ReMatch):
     quote_text = match.group(1)
     return AddQuoteAction(channel_name, username, quote_text)
 
@@ -107,7 +108,7 @@ add_quote_command = BotCommand(add_quote_pattern, add_quote)
 ###
 del_quote_pattern = re.compile(r"^!delQuote\s+(\d+)$")
 
-def del_quote(channel_name: str, username: str, match: Match):
+def del_quote(channel_name: str, username: str, match: ReMatch):
     qid = match.group(1)
     return DelQuoteAction(channel_name, username, int(qid))
 
@@ -175,8 +176,9 @@ commands = [
     del_quote_command
 ]
 
-def process_message(db_api: DB_API, msg: Message):
+def process_message(db_api: DB_API, msg: Message) -> Response:
     for command in commands:
         action = command.to_action(msg)
+        print(f"action for {command}: {action}")
         if action is not None:
-            run_action(db_api, action)
+            return run_action(db_api, action)

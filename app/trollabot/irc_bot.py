@@ -1,33 +1,18 @@
 #! /usr/bin/env python
-from app.trollabot.commands import process_message
+from app.trollabot.commands import process_message, Response, RespondWithResponse, JoinResponse, PartResponse, \
+    LogErrResponse
 from app.trollabot.database import DB_API
 from enum import Enum
 import irc.client
 import os
+
+from app.trollabot.messages import message_from_event
 
 class Permission(Enum):
     GOD = "God"
     STREAMER = "Streamer"
     MOD = "Mod"
     ANYONE = "Anyone"
-
-class Response:
-    pass
-
-class RespondWith(Response):
-    def __init__(self, s: str):
-        self.s = s
-
-class Join(Response):
-    def __init__(self, new_channel: str):  # Assuming ChannelName is a string
-        self.new_channel = new_channel
-
-class Part(Response):
-    pass
-
-class LogErr(Response):
-    def __init__(self, err: str):
-        self.err = err
 
 class TwitchIRCBot:
     def __init__(self, connection, db_api: DB_API):
@@ -64,12 +49,22 @@ class TwitchIRCBot:
     def on_pubmsg(self, connection, event):
         print(f"on_pubmsg {connection} {event} {event.tags}")
         message = message_from_event(event)
-        print(f"message.channel: {message.channel_name}")
-        print(f"message.sender: {message.username}")
-        print(f"message.text: {message.text}")
-        print(f"message.tags.mod: {message.tags.mod}")
-        print(f"message.tags.subscriber: {message.tags.subscriber}")
-        process_message(self.db_api, message)
+        print(f"message: {message}")
+        response = process_message(self.db_api, message)
+        print(f"response: {response}")
+        self.process_response(connection, response)
+
+    # TODO: get rid of these #'s somehow. like,
+    #  channel_name shouldn't be a string, it should be a ChannelName
+    def process_response(self, connection, response: Response):
+        if isinstance(response, RespondWithResponse):
+            connection.privmsg(f"#{response.channel_name}", response.msg)
+        elif isinstance(response, JoinResponse):
+            connection.join(f"#{response.channel_to_join}")
+        elif isinstance(response, PartResponse):
+            connection.part(f"#{response.channel_to_part}")
+        elif isinstance(response, LogErrResponse):
+            print(f"ERROR: {response.msg}")
 
 class IrcConfig:
     server = 'irc.chat.twitch.tv'

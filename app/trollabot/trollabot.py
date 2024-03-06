@@ -17,7 +17,7 @@ def run_with_pg_connection_string(conn_str):
     # TODO: remove these before deploying
     # but not until we write the !join command
     db_api.streams.insert_stream("artofthetroll", "artofthetroll")
-    db_api.streams.join("artofthetroll")
+    db_api.streams.join("artofthetroll", "artofthetroll")
 
     reactor, connection = setup_connection(irc_config=IrcConfig())
     bot = TwitchIRCBot(connection, db_api)

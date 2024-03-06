@@ -28,12 +28,12 @@ class Tags:
 # target: #artofthetroll,
 # arguments: ['hi'],
 # tags: [ ... ]   (see Tags)
+@dataclass
 class Message:
-    def __init__(self, channel_name: str, username: str, tags: Tags, text: str):
-        self.channel_name = channel_name
-        self.username = username
-        self.tags = tags
-        self.text = text
+    channel_name: str
+    username: str
+    tags: Tags
+    text: str
 
     def from_owner(self):
         return self.username == self.channel_name
