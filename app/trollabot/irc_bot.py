@@ -61,6 +61,7 @@ class TwitchIRCBot:
             connection.privmsg(f"#{response.channel_name}", response.msg)
         elif isinstance(response, JoinResponse):
             connection.join(f"#{response.channel_to_join}")
+            connection.privmsg(f"#{response.channel_to_join}", "Hola!")
         elif isinstance(response, PartResponse):
             connection.part(f"#{response.channel_to_part}")
         elif isinstance(response, LogErrResponse):

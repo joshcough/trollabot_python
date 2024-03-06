@@ -139,7 +139,7 @@ class LogErrResponse(Response):
 def run_action(db_api: DB_API, action: Action):
     if isinstance(action, JoinStreamAction):
         print(f"Joining {action.channel_to_join}")
-        db_api.streams.join(action.channel_to_join)
+        db_api.streams.join(action.channel_to_join, action.username)
         return JoinResponse(action.channel_to_join)
     elif isinstance(action, PartStreamAction):
         print(f"Parting {action.channel_to_part}")
