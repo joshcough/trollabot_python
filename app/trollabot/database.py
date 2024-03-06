@@ -7,7 +7,6 @@ from testcontainers.postgres import PostgresContainer
 
 Base = declarative_base()
 
-
 class Stream(Base):
     __tablename__ = 'streams'
     id = Column(Integer, primary_key=True)
@@ -21,7 +20,6 @@ class Stream(Base):
 
     def __repr__(self):
         return f"<Stream(id={self.id}, name='{self.name}', joined={self.joined}, added_by='{self.added_by}', added_at={self.added_at})>"
-
 
 class Quote(Base):
     __tablename__ = 'quotes'
@@ -48,10 +46,8 @@ class Quote(Base):
                 f"added_at={self.added_at}, deleted={self.deleted}, "
                 f"deleted_by='{self.deleted_by}', deleted_at={self.deleted_at})>")
 
-
 # Add a quotes attribute to the Stream class to complete the bidirectional relationship
 Stream.quotes = relationship("Quote", order_by=Quote.id, back_populates="stream")
-
 
 class StreamsInterface:
     def __init__(self, session):
@@ -73,9 +69,14 @@ class StreamsInterface:
     def get_stream_by_name(self, channel_name):
         return self.session.query(Stream).filter_by(name=channel_name).first()
 
-    def join(self, channel_name):
+    def join(self, channel_name, username):
+        existing_stream = self.session.query(Stream).filter_by(name=channel_name).first()
+        if existing_stream is None:
+            self.insert_stream(channel_name, username)
         self.session.execute(update(Stream).where(Stream.name == channel_name).values(joined=True))
 
+    def part(self, channel_name):
+        self.session.execute(update(Stream).where(Stream.name == channel_name).values(joined=False))
 
 class QuotesInterface:
     def __init__(self, session: Session):
@@ -100,7 +101,7 @@ class QuotesInterface:
             .order_by(func.random()) \
             .first()
 
-    def insert_quote(self, text, username, channel_name):
+    def insert_quote(self, channel_name, username, text):
         insert_stmt = Quote.__table__.insert().values(
             qid=select(func.coalesce(func.max(Quote.qid) + 1, 1)).
                 where(Quote.stream.has(name=channel_name)).
@@ -124,12 +125,10 @@ class QuotesInterface:
                 values(deleted=True, deleted_at=func.now(), deleted_by=username))
         self.session.commit()
 
-
 class DB_API:
     def __init__(self, db_session):
         self.streams = StreamsInterface(db_session)
         self.quotes = QuotesInterface(db_session)
-
 
 class DbConfigInterface(ABC):
     @property
@@ -161,7 +160,6 @@ class DbConfigInterface(ABC):
         """Constructs and returns a PostgreSQL connection string."""
         return f"postgresql://{self.username}:{self.password}@{self.server}:{self.port}/{self.database}"
 
-
 class EnvDbConfig(DbConfigInterface):
     @property
     def server(self):
@@ -182,7 +180,6 @@ class EnvDbConfig(DbConfigInterface):
     @property
     def database(self):
         return os.getenv('PG_DATABASE')
-
 
 class ContainerDbConfig(DbConfigInterface):
     def __init__(self, container: PostgresContainer):

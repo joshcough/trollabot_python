@@ -4,7 +4,6 @@ from testcontainers.postgres import PostgresContainer
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-
 @pytest.fixture(scope="module")
 def db_api():
     with PostgresContainer("postgres:latest") as postgres:
@@ -17,7 +16,6 @@ def db_api():
         db_session.close()
         Base.metadata.drop_all(bind=engine)
 
-
 @pytest.fixture(scope="function")
 def clean_db(db_api):
     yield
@@ -26,7 +24,6 @@ def clean_db(db_api):
     db_session.query(Stream).delete()
     db_session.commit()
 
-
 def test_insert_and_get_stream(db_api, clean_db):
     new_stream = db_api.streams.insert_stream("test", "tester")
     queried_stream = db_api.streams.get_stream_by_name("test")
@@ -34,40 +31,41 @@ def test_insert_and_get_stream(db_api, clean_db):
     assert queried_stream.name == new_stream.name
     assert queried_stream.added_by == new_stream.added_by
 
-
 def test_can_join_stream(db_api, clean_db):
     new_stream = db_api.streams.insert_stream("test", "tester")
     queried_stream = db_api.streams.get_stream_by_name(new_stream.name)
     assert not queried_stream.joined
-    db_api.streams.join("test")
+    db_api.streams.join("test", "tester")
     queried_stream = db_api.streams.get_stream_by_name(new_stream.name)
     assert queried_stream.joined
 
+def test_can_join_stream_that_doesnt_exist(db_api, clean_db):
+    db_api.streams.join("test", "tester")
+    queried_stream = db_api.streams.get_stream_by_name("test")
+    assert queried_stream.joined
 
 def test_inserts_advance_qid(db_api, clean_db):
     troll = db_api.streams.insert_stream("test", "tester")
     daut = db_api.streams.insert_stream("daut", "tester")
 
-    db_api.quotes.insert_quote("hi there", "tester", troll.name)
-    db_api.quotes.insert_quote("yo", "tester", daut.name)
-    db_api.quotes.insert_quote("bye", "tester", troll.name)
+    db_api.quotes.insert_quote(troll.name, "tester", "hi there", )
+    db_api.quotes.insert_quote(daut.name, "tester", "yo")
+    db_api.quotes.insert_quote(troll.name, "tester", "bye")
 
     troll_quotes = db_api.quotes.get_all("test")
     qids = list(map(lambda x: x.qid, troll_quotes))
     assert qids == [1, 2]
 
-
 def test_get_quote_by_qid(db_api, clean_db):
     troll = db_api.streams.insert_stream("test", "tester")
-    q1 = db_api.quotes.insert_quote("hi there", "tester", troll.name)
-    q2 = db_api.quotes.insert_quote("bye", "tester", troll.name)
+    q1 = db_api.quotes.insert_quote(troll.name, "tester", "hi there")
+    q2 = db_api.quotes.insert_quote(troll.name, "tester", "bye", )
     assert db_api.quotes.get_quote("test", q1.qid).text == "hi there"
     assert db_api.quotes.get_quote("test", q2.qid).text == "bye"
 
-
 def test_can_delete_quote(db_api, clean_db):
     troll = db_api.streams.insert_stream("test", "tester")
-    q1 = db_api.quotes.insert_quote("hi there", "tester", troll.name)
+    q1 = db_api.quotes.insert_quote(troll.name, "tester", "hi there")
     assert db_api.quotes.get_quote("test", q1.qid).text == "hi there"
     db_api.quotes.delete_quote("test", q1.qid, "tester")
     assert db_api.quotes.get_quote("test", q1.qid) == None
