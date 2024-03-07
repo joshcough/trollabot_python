@@ -1,16 +1,43 @@
+import re
 from abc import ABC
 from app.trollabot.database import DB_API
+from app.trollabot.messages import Message, ChannelName
 from dataclasses import dataclass
-import re
+from enum import Enum
 from re import Match as ReMatch, Pattern
 from typing import Callable
 
-from app.trollabot.messages import Message, ChannelName
+class Permission(Enum):
+    GOD = (4, "God")
+    STREAMER = (3, "Streamer")
+    MOD = (2, "Mod")
+    ANYONE = (1, "Anyone")
+
+    def __gt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value[0] > other.value[0]
+        return NotImplemented
+
+    def __ge__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value[0] >= other.value[0]
+        return NotImplemented
+
+    @property
+    def label(self):
+        return self.value[1]
+
 
 @dataclass
 class Action:
     channel_name: ChannelName
     username: str
+
+    @property
+    def permission(self):
+        # TODO: maybe we should raise an error here if a subclass does not override
+        return Permission.GOD
+
 
 @dataclass
 class StreamsAction(Action):
@@ -19,10 +46,16 @@ class StreamsAction(Action):
 @dataclass
 class JoinStreamAction(StreamsAction):
     channel_to_join: ChannelName
+    @property
+    def permission(self):
+        return Permission.GOD
 
 @dataclass
 class PartStreamAction(StreamsAction):
     channel_to_part: ChannelName
+    @property
+    def permission(self):
+        return Permission.STREAMER
 
 @dataclass
 class QuoteAction(Action):
@@ -31,25 +64,35 @@ class QuoteAction(Action):
 @dataclass
 class GetExactQuoteAction(QuoteAction):
     qid: int
+    @property
+    def permission(self):
+        return Permission.ANYONE
 
 @dataclass
 class GetRandomQuoteAction(QuoteAction):
-    pass
-
+    @property
+    def permission(self):
+        return Permission.ANYONE
 @dataclass
 class AddQuoteAction(QuoteAction):
     text: str
+    @property
+    def permission(self):
+        return Permission.MOD
 
 @dataclass
 class DelQuoteAction(QuoteAction):
     qid: int
+    @property
+    def permission(self):
+        return Permission.MOD
 
 @dataclass
 class BotCommand(ABC):
     pattern: Pattern
     body: Callable[[ChannelName, str, ReMatch], Action]
 
-    def to_action(self, message: Message):
+    def to_action(self, message: Message) -> Action:
         match = self.pattern.match(message.text)
         if match:
             return self.body(message.channel_name, message.username, match)
@@ -174,9 +217,23 @@ commands = [
     del_quote_command
 ]
 
+def get_permission_level(msg: Message) -> Permission:
+    if msg.from_god():
+        return Permission.GOD
+    elif msg.from_owner():
+        return Permission.STREAMER
+    elif msg.from_mod():
+        return Permission.MOD
+    else:
+        return Permission.ANYONE
+
 def process_message(db_api: DB_API, msg: Message) -> Response:
     for command in commands:
-        action = command.to_action(msg)
+        action: Action = command.to_action(msg)
         print(f"action for {command}: {action}")
         if action is not None:
-            return run_action(db_api, action)
+            if get_permission_level(msg) >= action.permission:
+                return run_action(db_api, action)
+            else:
+                errmsg = f"You don't have permission to do that. You need at least {action.permission}"
+                return RespondWithResponse(msg.channel_name, errmsg)

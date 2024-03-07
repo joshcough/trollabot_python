@@ -2,17 +2,10 @@
 from app.trollabot.commands import process_message, Response, RespondWithResponse, JoinResponse, PartResponse, \
     LogErrResponse
 from app.trollabot.database import DB_API
-from enum import Enum
 import irc.client
 import os
 
 from app.trollabot.messages import message_from_event
-
-class Permission(Enum):
-    GOD = "God"
-    STREAMER = "Streamer"
-    MOD = "Mod"
-    ANYONE = "Anyone"
 
 class TwitchIRCBot:
     def __init__(self, connection, db_api: DB_API):
