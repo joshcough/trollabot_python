@@ -42,6 +42,9 @@ class Message:
     tags: Tags
     text: str
 
+    def from_god(self):
+        return self.username == "artofthetroll"
+
     def from_owner(self):
         return self.username == self.channel_name.value
 

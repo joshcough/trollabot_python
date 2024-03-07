@@ -1,6 +1,5 @@
-import os
 from abc import ABC, abstractmethod
-
+import os
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, select, update, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, Session

@@ -1,10 +1,10 @@
-import re
 from abc import ABC
+from app.trollabot.database import DB_API
 from dataclasses import dataclass
+import re
 from re import Match as ReMatch, Pattern
 from typing import Callable
 
-from app.trollabot.database import DB_API
 from app.trollabot.messages import Message, ChannelName
 
 @dataclass
