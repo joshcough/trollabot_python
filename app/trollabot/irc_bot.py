@@ -38,9 +38,13 @@ class TwitchIRCBot:
         print(f"on_pubmsg {connection} {event} {event.tags}")
         message = message_from_event(event)
         print(f"message: {message}")
-        response = process_message(self.db_api, message)
-        print(f"response: {response}")
-        self.process_response(connection, response)
+        try:
+            response: Response = process_message(self.db_api, message)
+            print(f"response: {response}")
+            self.process_response(connection, response)
+        except Exception as e:
+            # TODO: maybe we should send an error back to the user. But not sure yet.
+            print(f"An error occurred: {e}")
 
     def process_response(self, connection, response: Response):
         if isinstance(response, RespondWithResponse):
