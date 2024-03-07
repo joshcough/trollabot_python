@@ -1,11 +1,12 @@
 #! /usr/bin/env python
+import os
+from enum import Enum
+
+import irc.client
+
 from app.trollabot.commands import process_message, Response, RespondWithResponse, JoinResponse, PartResponse, \
     LogErrResponse
 from app.trollabot.database import DB_API
-from enum import Enum
-import irc.client
-import os
-
 from app.trollabot.messages import message_from_event
 
 class Permission(Enum):
@@ -23,7 +24,6 @@ class TwitchIRCBot:
 
         # Bind event handlers to the connection object
         self.connection.add_global_handler("welcome", self.on_connect)
-        self.connection.add_global_handler("join", self.on_join)
         self.connection.add_global_handler("disconnect", self.on_disconnect)
         self.connection.add_global_handler("pubmsg", self.on_pubmsg)
 
@@ -34,13 +34,9 @@ class TwitchIRCBot:
         connection.cap('REQ', 'twitch.tv/tags')
 
         for channel in self.channels:
-            if irc.client.is_channel(channel.irc_name()):
-                connection.join(channel.irc_name())
-                connection.privmsg(channel.irc_name(), "hola")
-
-    # NOTE: i think this is when another user joins
-    def on_join(self, connection, event):
-        print(f"on_join {connection} {event}")
+            if irc.client.is_channel(channel.channel_name().as_irc()):
+                connection.join(channel.channel_name().as_irc())
+                connection.privmsg(channel.channel_name().as_irc(), "hola")
 
     def on_disconnect(self, connection, event):
         print(f"on_disconnect {connection} {event}")
@@ -54,16 +50,14 @@ class TwitchIRCBot:
         print(f"response: {response}")
         self.process_response(connection, response)
 
-    # TODO: get rid of these #'s somehow. like,
-    #  channel_name shouldn't be a string, it should be a ChannelName
     def process_response(self, connection, response: Response):
         if isinstance(response, RespondWithResponse):
-            connection.privmsg(f"#{response.channel_name}", response.msg)
+            connection.privmsg(response.channel_name.as_irc(), response.msg)
         elif isinstance(response, JoinResponse):
-            connection.join(f"#{response.channel_to_join}")
-            connection.privmsg(f"#{response.channel_to_join}", "Hola!")
+            connection.join(response.channel_to_join.as_irc())
+            connection.privmsg(response.channel_to_join.as_irc(), "Hola!")
         elif isinstance(response, PartResponse):
-            connection.part(f"#{response.channel_to_part}")
+            connection.part(response.channel_to_part.as_irc())
         elif isinstance(response, LogErrResponse):
             print(f"ERROR: {response.msg}")
 

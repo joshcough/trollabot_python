@@ -6,6 +6,7 @@ from testcontainers.postgres import PostgresContainer
 
 from app.trollabot.database import Base, EnvDbConfig, ContainerDbConfig, DB_API
 from app.trollabot.irc_bot import IrcConfig, TwitchIRCBot, setup_connection
+from app.trollabot.messages import ChannelName
 
 def run_with_pg_connection_string(conn_str):
     engine = create_engine(conn_str, isolation_level="REPEATABLE READ")
@@ -16,8 +17,8 @@ def run_with_pg_connection_string(conn_str):
 
     # TODO: remove these before deploying
     # but not until we write the !join command
-    db_api.streams.insert_stream("artofthetroll", "artofthetroll")
-    db_api.streams.join("artofthetroll", "artofthetroll")
+    db_api.streams.insert_stream(ChannelName("artofthetroll"), "artofthetroll")
+    db_api.streams.join(ChannelName("artofthetroll"), "artofthetroll")
 
     reactor, connection = setup_connection(irc_config=IrcConfig())
     bot = TwitchIRCBot(connection, db_api)

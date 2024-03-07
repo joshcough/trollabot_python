@@ -1,5 +1,12 @@
 from dataclasses import dataclass
 
+@dataclass
+class ChannelName:
+    value: str
+
+    def as_irc(self):
+        return f"#{self.value}"
+
 # tags: [
 #   {'key': 'badge-info', 'value': 'subscriber/78'},
 #   {'key': 'badges', 'value': 'broadcaster/1,subscriber/0,premium/1'},
@@ -30,20 +37,20 @@ class Tags:
 # tags: [ ... ]   (see Tags)
 @dataclass
 class Message:
-    channel_name: str
+    channel_name: ChannelName
     username: str
     tags: Tags
     text: str
 
     def from_owner(self):
-        return self.username == self.channel_name
+        return self.username == self.channel_name.value
 
     def from_mod(self):
         return self.tags.mod == '1'
 
 def message_from_event(event):
     return Message(
-        event.target.split('#')[1],
+        ChannelName(event.target.split('#')[1]),
         event.source.split('!')[0],
         Tags(event.tags),
         event.arguments[0]
