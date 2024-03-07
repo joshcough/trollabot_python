@@ -1,9 +1,6 @@
-from abc import ABC, abstractmethod
-import os
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, select, update, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, Session
-from testcontainers.postgres import PostgresContainer
 
 from app.trollabot.messages import ChannelName
 
@@ -131,80 +128,3 @@ class DB_API:
     def __init__(self, db_session):
         self.streams = StreamsInterface(db_session)
         self.quotes = QuotesInterface(db_session)
-
-class DbConfigInterface(ABC):
-    @property
-    @abstractmethod
-    def server(self):
-        pass
-
-    @property
-    @abstractmethod
-    def port(self):
-        pass
-
-    @property
-    @abstractmethod
-    def username(self):
-        pass
-
-    @property
-    @abstractmethod
-    def password(self):
-        pass
-
-    @property
-    @abstractmethod
-    def database(self):
-        pass
-
-    def get_connection_string(self):
-        """Constructs and returns a PostgreSQL connection string."""
-        return f"postgresql://{self.username}:{self.password}@{self.server}:{self.port}/{self.database}"
-
-class EnvDbConfig(DbConfigInterface):
-    @property
-    def server(self):
-        return os.getenv('PG_HOST')
-
-    @property
-    def port(self):
-        return os.getenv('PG_PORT', '5432')
-
-    @property
-    def username(self):
-        return os.getenv('PG_USER')
-
-    @property
-    def password(self):
-        return os.getenv('PG_PASS')
-
-    @property
-    def database(self):
-        return os.getenv('PG_DATABASE')
-
-class ContainerDbConfig(DbConfigInterface):
-    def __init__(self, container: PostgresContainer):
-        self.container = container
-
-    @property
-    def server(self):
-        # Assuming the container object has a method to get the IP
-        return self.container.get_container_host_ip()
-
-    @property
-    def port(self):
-        # Assuming the container object can map the port
-        return self.container.get_exposed_port(5432)
-
-    @property
-    def username(self):
-        return self.container.POSTGRES_USER
-
-    @property
-    def password(self):
-        return self.container.POSTGRES_PASSWORD
-
-    @property
-    def database(self):
-        return self.container.POSTGRES_DB

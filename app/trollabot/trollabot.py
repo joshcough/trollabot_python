@@ -1,10 +1,11 @@
 #! /usr/bin/env python
+import os
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
-from app.trollabot.database import Base, EnvDbConfig, ContainerDbConfig, DB_API
+from app.trollabot.database import Base, DB_API
 from app.trollabot.irc_bot import IrcConfig, TwitchIRCBot, setup_connection
 from app.trollabot.messages import ChannelName
 
@@ -29,9 +30,7 @@ def run_with_pg_connection_string(conn_str):
 
 def run_via_test_container():
     with PostgresContainer("postgres:latest") as postgres:
-        config = ContainerDbConfig(postgres)
-        run_with_pg_connection_string(config.get_connection_string())
+        run_with_pg_connection_string(postgres.get_connection_url())
 
 def run_via_external_db():
-    config = EnvDbConfig()
-    run_with_pg_connection_string(config.get_connection_string())
+    run_with_pg_connection_string(os.getenv('DATABASE_URL'))
