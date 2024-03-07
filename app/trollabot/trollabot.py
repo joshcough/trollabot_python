@@ -10,6 +10,9 @@ from app.trollabot.irc_bot import IrcConfig, TwitchIRCBot, setup_connection
 from app.trollabot.messages import ChannelName
 
 def run_with_pg_connection_string(conn_str) -> None:
+    if conn_str.startswith("postgres://"):
+        conn_str = conn_str.replace("postgres://", "postgresql://", 1)
+
     engine = create_engine(conn_str, isolation_level="REPEATABLE READ")
     Base.metadata.create_all(engine)
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
