@@ -1,11 +1,12 @@
 import re
 from abc import ABC
-from app.trollabot.database import DB_API
-from app.trollabot.messages import Message, ChannelName
 from dataclasses import dataclass
 from enum import Enum
 from re import Match as ReMatch, Pattern
-from typing import Callable
+from typing import Callable, Optional
+
+from app.trollabot.database import DB_API
+from app.trollabot.messages import Message, ChannelName
 
 class Permission(Enum):
     GOD = (4, "God")
@@ -27,7 +28,6 @@ class Permission(Enum):
     def label(self):
         return self.value[1]
 
-
 @dataclass
 class Action:
     channel_name: ChannelName
@@ -38,7 +38,6 @@ class Action:
         # TODO: maybe we should raise an error here if a subclass does not override
         return Permission.GOD
 
-
 @dataclass
 class StreamsAction(Action):
     pass
@@ -46,6 +45,7 @@ class StreamsAction(Action):
 @dataclass
 class JoinStreamAction(StreamsAction):
     channel_to_join: ChannelName
+
     @property
     def permission(self):
         return Permission.GOD
@@ -53,6 +53,7 @@ class JoinStreamAction(StreamsAction):
 @dataclass
 class PartStreamAction(StreamsAction):
     channel_to_part: ChannelName
+
     @property
     def permission(self):
         return Permission.STREAMER
@@ -64,6 +65,7 @@ class QuoteAction(Action):
 @dataclass
 class GetExactQuoteAction(QuoteAction):
     qid: int
+
     @property
     def permission(self):
         return Permission.ANYONE
@@ -73,9 +75,11 @@ class GetRandomQuoteAction(QuoteAction):
     @property
     def permission(self):
         return Permission.ANYONE
+
 @dataclass
 class AddQuoteAction(QuoteAction):
     text: str
+
     @property
     def permission(self):
         return Permission.MOD
@@ -83,6 +87,7 @@ class AddQuoteAction(QuoteAction):
 @dataclass
 class DelQuoteAction(QuoteAction):
     qid: int
+
     @property
     def permission(self):
         return Permission.MOD
@@ -92,7 +97,7 @@ class BotCommand(ABC):
     pattern: Pattern
     body: Callable[[ChannelName, str, ReMatch], Action]
 
-    def to_action(self, message: Message) -> Action:
+    def to_action(self, message: Message) -> Optional[Action]:
         match = self.pattern.match(message.text)
         if match:
             return self.body(message.channel_name, message.username, match)
@@ -102,29 +107,29 @@ class BotCommand(ABC):
 ###
 # JOIN STREAM CODE
 ###
-join_stream_pattern = re.compile(r"^!join\s+(.+)")
+join_stream_pattern = re.compile(r"^!join\s+(.+)", re.IGNORECASE)
 
 def join_stream(channel_name: ChannelName, username: str, match: ReMatch):
     stream_to_join = match.group(1)
-    return JoinStreamAction(channel_name, username, stream_to_join)
+    return JoinStreamAction(channel_name, username, ChannelName(stream_to_join))
 
 join_stream_command = BotCommand(join_stream_pattern, join_stream)
 
 ###
 # PART STREAM CODE
 ###
-part_stream_pattern = re.compile(r"^!part\s+(.+)")
+part_stream_pattern = re.compile(r"^!part\s+(.+)", re.IGNORECASE)
 
 def part_stream(channel_name: ChannelName, username: str, match: ReMatch):
     stream_to_part = match.group(1)
-    return PartStreamAction(channel_name, username, stream_to_part)
+    return PartStreamAction(channel_name, username, ChannelName(stream_to_part))
 
 part_stream_command = BotCommand(part_stream_pattern, part_stream)
 
 ###
 # GET QUOTE CODE
 ###
-get_quote_pattern = re.compile(r"^!quote(?:\s+(\d+))?$")
+get_quote_pattern = re.compile(r"^!quote(?:\s+(\d+))?$", re.IGNORECASE)
 
 def get_quote(channel_name: ChannelName, username: str, match: ReMatch):
     qid = match.group(1)
@@ -138,7 +143,7 @@ get_quote_command = BotCommand(get_quote_pattern, get_quote)
 ###
 # ADD QUOTE CODE
 ###
-add_quote_pattern = re.compile(r"^!addQuote\s+(.+)")
+add_quote_pattern = re.compile(r"^!addQuote\s+(.+)", re.IGNORECASE)
 
 def add_quote(channel_name: ChannelName, username: str, match: ReMatch):
     quote_text = match.group(1)
@@ -149,7 +154,7 @@ add_quote_command = BotCommand(add_quote_pattern, add_quote)
 ###
 # DELETE QUOTE CODE
 ###
-del_quote_pattern = re.compile(r"^!delQuote\s+(\d+)$")
+del_quote_pattern = re.compile(r"^!delQuote\s+(\d+)$", re.IGNORECASE)
 
 def del_quote(channel_name: ChannelName, username: str, match: ReMatch):
     qid = match.group(1)
