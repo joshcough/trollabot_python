@@ -51,7 +51,7 @@ class Message:
     def from_mod(self):
         return self.tags.mod == '1'
 
-def message_from_event(event):
+def message_from_event(event) -> Message:
     return Message(
         ChannelName(event.target.split('#')[1]),
         event.source.split('!')[0],

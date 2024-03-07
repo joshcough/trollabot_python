@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, select, update, UniqueConstraint
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, Session
@@ -14,10 +16,10 @@ class Stream(Base):
     added_by = Column(String, nullable=False)
     added_at = Column(DateTime, nullable=False, default=func.now())
 
-    def channel_name(self):
+    def channel_name(self) -> ChannelName:
         return ChannelName(self.name)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Stream(id={self.id}, name='{self.name}', joined={self.joined}, added_by='{self.added_by}', added_at={self.added_at})>"
 
 class Quote(Base):
@@ -48,59 +50,59 @@ class Quote(Base):
 # Add a quotes attribute to the Stream class to complete the bidirectional relationship
 Stream.quotes = relationship("Quote", order_by=Quote.id, back_populates="stream")
 
-class StreamsInterface:
+class StreamsDB:
     def __init__(self, session):
         self.session = session
 
-    def insert_stream(self, channel_name: ChannelName, username: str):
+    def insert_stream(self, channel_name: ChannelName, username: str) -> Stream:
         new_stream = Stream(name=channel_name.value, added_by=username)
         self.session.add(new_stream)
         self.session.commit()
         self.session.refresh(new_stream)
         return new_stream
 
-    def get_streams(self):
+    def get_streams(self) -> [Stream]:
         return self.session.query(Stream).all()
 
-    def get_joined_streams(self):
+    def get_joined_streams(self) -> [Stream]:
         return self.session.query(Stream).filter_by(joined=True).all()
 
-    def get_stream_by_name(self, channel_name: ChannelName):
+    def get_stream_by_name(self, channel_name: ChannelName) -> Optional[Stream]:
         return self.session.query(Stream).filter_by(name=channel_name.value).first()
 
-    def join(self, channel_name: ChannelName, username: str):
+    def join(self, channel_name: ChannelName, username: str) -> None:
         existing_stream = self.session.query(Stream).filter_by(name=channel_name.value).first()
         if existing_stream is None:
             self.insert_stream(channel_name, username)
         self.session.execute(update(Stream).where(Stream.name == channel_name.value).values(joined=True))
 
-    def part(self, channel_name: ChannelName):
+    def part(self, channel_name: ChannelName) -> None:
         self.session.execute(update(Stream).where(Stream.name == channel_name.value).values(joined=False))
 
-class QuotesInterface:
+class QuotesDB:
     def __init__(self, session: Session):
         self.session = session
 
-    def get_all(self, channel_name: ChannelName):
+    def get_all(self, channel_name: ChannelName) -> [Quote]:
         return self.session.query(Quote). \
             join(Stream). \
             filter(Stream.name == channel_name.value, Quote.deleted == False). \
             all()
 
-    def get_quote(self, channel_name: ChannelName, qid):
+    def get_quote(self, channel_name: ChannelName, qid) -> Optional[Quote]:
         return self.session.query(Quote). \
             join(Stream). \
             filter(Stream.name == channel_name.value, Quote.qid == qid, Quote.deleted == False). \
             first()
 
-    def get_random_quote(self, channel_name: ChannelName):
+    def get_random_quote(self, channel_name: ChannelName) -> Optional[Quote]:
         return self.session.query(Quote) \
             .join(Stream) \
             .filter(Stream.name == channel_name.value, Quote.deleted == False) \
             .order_by(func.random()) \
             .first()
 
-    def insert_quote(self, channel_name: ChannelName, username, text):
+    def insert_quote(self, channel_name: ChannelName, username, text) -> Quote:
         insert_stmt = Quote.__table__.insert().values(
             qid=select(func.coalesce(func.max(Quote.qid) + 1, 1)).
                 where(Quote.stream.has(name=channel_name.value)).
@@ -116,7 +118,7 @@ class QuotesInterface:
         inserted_quote_id = result.inserted_primary_key[0]
         return self.session.get(Quote, inserted_quote_id)
 
-    def delete_quote(self, channel_name: ChannelName, qid, username):
+    def delete_quote(self, channel_name: ChannelName, qid, username) -> None:
         self.session.execute(
             update(Quote).
                 where(Quote.qid == qid).
@@ -126,5 +128,5 @@ class QuotesInterface:
 
 class DB_API:
     def __init__(self, db_session):
-        self.streams = StreamsInterface(db_session)
-        self.quotes = QuotesInterface(db_session)
+        self.streams = StreamsDB(db_session)
+        self.quotes = QuotesDB(db_session)

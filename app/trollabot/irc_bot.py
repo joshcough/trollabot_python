@@ -19,7 +19,7 @@ class TwitchIRCBot:
         self.connection.add_global_handler("disconnect", self.on_disconnect)
         self.connection.add_global_handler("pubmsg", self.on_pubmsg)
 
-    def on_connect(self, connection, event):
+    def on_connect(self, connection, event) -> None:
         print(f"on_connect {event}")
         connection.cap('REQ', 'twitch.tv/membership')
         connection.cap('REQ', 'twitch.tv/commands')
@@ -30,23 +30,24 @@ class TwitchIRCBot:
                 connection.join(channel.channel_name().as_irc())
                 connection.privmsg(channel.channel_name().as_irc(), "hola")
 
-    def on_disconnect(self, connection, event):
+    def on_disconnect(self, connection, event) -> None:
         print(f"on_disconnect {connection} {event}")
         raise SystemExit()
 
-    def on_pubmsg(self, connection, event):
+    def on_pubmsg(self, connection, event) -> None:
         print(f"on_pubmsg {connection} {event} {event.tags}")
         message = message_from_event(event)
         print(f"message: {message}")
         try:
             response: Response = process_message(self.db_api, message)
             print(f"response: {response}")
-            self.process_response(connection, response)
+            if response is not None:
+                self.process_response(connection, response)
         except Exception as e:
             # TODO: maybe we should send an error back to the user. But not sure yet.
             print(f"An error occurred: {e}")
 
-    def process_response(self, connection, response: Response):
+    def process_response(self, connection, response: Response) -> None:
         if isinstance(response, RespondWithResponse):
             connection.privmsg(response.channel_name.as_irc(), response.msg)
         elif isinstance(response, JoinResponse):
