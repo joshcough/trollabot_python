@@ -3,3 +3,13 @@ to install, i have to do:
 `python3 -m pip install library-name`
 
 for some reason, other commands dont seem to work properly and i end up getting no module found errors or wahtever.
+
+
+
+
+
+trollabot::DATABASE=> select * from quotes;
+ id | qid |                                text                                | stream_id |   added_by    |          added_at          | deleted | deleted_by | deleted_at
+----+-----+--------------------------------------------------------------------+-----------+---------------+----------------------------+---------+------------+------------
+  1 |   1 | hi                                                                 |         1 | artofthetroll | 2024-03-07 19:02:24.531056 | f       |            |
+  2 |   1 | We finally got rid of Nili and Jordan, we finally got a solid team |         2 | batbeetch     | 2024-03-07 19:02:51.757159 | f       |            |
