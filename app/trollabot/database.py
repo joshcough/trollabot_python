@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, select, update, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, select, update
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship, Session
 
@@ -10,24 +10,25 @@ Base = declarative_base()
 
 class Stream(Base):
     __tablename__ = 'streams'
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False, primary_key=True)
     joined = Column(Boolean, default=False, nullable=False)
     added_by = Column(String, nullable=False)
     added_at = Column(DateTime, nullable=False, default=func.now())
+
+    quotes = relationship("Quote", order_by="Quote.qid", back_populates="stream")
 
     def channel_name(self) -> ChannelName:
         return ChannelName(self.name)
 
     def __repr__(self) -> str:
-        return f"<Stream(id={self.id}, name='{self.name}', joined={self.joined}, added_by='{self.added_by}', added_at={self.added_at})>"
+        return f"<Stream(name='{self.name}', joined={self.joined}, " \
+               f"added_by='{self.added_by}', added_at={self.added_at})>"
 
 class Quote(Base):
     __tablename__ = 'quotes'
-    id = Column(Integer, primary_key=True)
-    qid = Column(Integer, nullable=False)
+    qid = Column(Integer, primary_key=True)
     text = Column(String, nullable=False)
-    stream_id = Column(Integer, ForeignKey('streams.id'), nullable=False)
+    channel = Column(String, ForeignKey('streams.name'), primary_key=True)
     added_by = Column(String, nullable=False)
     added_at = Column(DateTime, nullable=False, default=func.now())
     deleted = Column(Boolean, default=False, nullable=False)
@@ -37,18 +38,10 @@ class Quote(Base):
     # Define a relationship (this is optional and for convenience)
     stream = relationship("Stream", back_populates="quotes")
 
-    __table_args__ = (
-        UniqueConstraint('stream_id', 'text', name='_stream_id_text_uc'),
-    )
-
     def __repr__(self):
-        return (f"<Quote(id={self.id}, qid={self.qid}, text='{self.text}', "
-                f"stream_id={self.stream_id}, added_by='{self.added_by}', "
-                f"added_at={self.added_at}, deleted={self.deleted}, "
+        return (f"<Quote(qid={self.qid}, text='{self.text}', channel={self.channel}, "
+                f"added_by='{self.added_by}', added_at={self.added_at}, deleted={self.deleted}, "
                 f"deleted_by='{self.deleted_by}', deleted_at={self.deleted_at})>")
-
-# Add a quotes attribute to the Stream class to complete the bidirectional relationship
-Stream.quotes = relationship("Quote", order_by=Quote.id, back_populates="stream")
 
 class StreamsDB:
     def __init__(self, session):
@@ -109,14 +102,14 @@ class QuotesDB:
                 scalar_subquery(),
             text=text,
             added_by=username,
-            stream_id=self.session.query(Stream.id).filter(Stream.name == channel_name.value).scalar_subquery(),
-        )
+            channel=channel_name.value,
+        ).returning(Quote.qid)
 
         result = self.session.execute(insert_stmt)
         self.session.commit()
 
-        inserted_quote_id = result.inserted_primary_key[0]
-        return self.session.get(Quote, inserted_quote_id)
+        new_qid = result.fetchone()[0]
+        return self.session.get(Quote, {"channel": channel_name.value, "qid": new_qid})
 
     def delete_quote(self, channel_name: ChannelName, qid, username) -> None:
         self.session.execute(
