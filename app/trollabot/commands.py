@@ -226,7 +226,7 @@ def run_action(db_api: DB_API, action: Action) -> Optional[Response]:
         return RespondWithResponse(action.channel_name, f"Added quote {quote.qid}: {quote.text}")
     elif isinstance(action, DelQuoteAction):
         print(f"Deleting quote {action.qid}")
-        db_api.quotes.delete_quote(action.channel_name, action.username, action.qid)
+        db_api.quotes.delete_quote(action.channel_name, action.qid, action.username)
         return RespondWithResponse(action.channel_name, f"Deleted quote {action.qid}")
     else:
         print(f"Unknown action: {action}")
