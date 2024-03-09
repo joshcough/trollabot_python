@@ -21,6 +21,7 @@ def run_with_pg_connection_string(conn_str, on_engine_create) -> None:
     db_api: DB_API = DB_API(db_session)
 
     db_api.streams.join(ChannelName("artofthetroll"), "artofthetroll")
+    db_api.streams.join(ChannelName("daut"), "artofthetroll")
     db_session.commit()
 
     reactor, connection = setup_connection(irc_config=IrcConfig())
