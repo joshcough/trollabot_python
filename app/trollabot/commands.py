@@ -59,6 +59,12 @@ class PartStreamAction(StreamsAction):
         return Permission.STREAMER
 
 @dataclass
+class PrintStreamsAction(StreamsAction):
+    @property
+    def permission(self) -> Permission:
+        return Permission.GOD
+
+@dataclass
 class QuoteAction(Action):
     pass
 
@@ -123,6 +129,17 @@ def part_stream(channel_name: ChannelName, username: str, match: ReMatch) -> Act
     return PartStreamAction(channel_name, username, ChannelName(stream_to_part))
 
 part_stream_command: BotCommand = BotCommand("!part", part_stream_pattern, part_stream)
+
+###
+# PRINT STREAMS CODE
+###
+print_streams_pattern: Pattern = re.compile(r"^!print_streams", re.IGNORECASE)
+
+def print_streams(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
+    return PrintStreamsAction(channel_name, username)
+
+print_streams_command: BotCommand = BotCommand("!print_streams", print_streams_pattern, print_streams)
+
 
 ###
 # GET QUOTE CODE
@@ -190,6 +207,9 @@ def run_action(db_api: DB_API, action: Action) -> Optional[Response]:
         print(f"Parting {action.channel_to_part}")
         db_api.streams.part(action.channel_to_part)
         return PartResponse(action.channel_to_part)
+    elif isinstance(action, PrintStreamsAction):
+        streams = db_api.streams
+        return RespondWithResponse(f"{streams}")
     elif isinstance(action, GetExactQuoteAction):
         print(f"Getting exact quote {action.qid}")
         quote = db_api.quotes.get_quote(action.channel_name, action.qid)
