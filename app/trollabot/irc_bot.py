@@ -28,20 +28,18 @@ class TwitchIRCBot:
         for channel in self.channels:
             if irc.client.is_channel(channel.channel_name().as_irc()):
                 connection.join(channel.channel_name().as_irc())
-                connection.privmsg(channel.channel_name().as_irc(), "hola")
+                connection.privmsg(channel.channel_name().as_irc(), "Hello ladies, I'm back.")
 
     def on_disconnect(self, connection, event) -> None:
         print(f"on_disconnect {connection} {event}")
         raise SystemExit()
 
     def on_pubmsg(self, connection, event) -> None:
-        print(f"on_pubmsg {connection} {event} {event.tags}")
         message = message_from_event(event)
-        print(f"message: {message}")
         try:
             response: Response = process_message(self.db_api, message)
-            print(f"response: {response}")
             if response is not None:
+                print(f"response: {response}")
                 self.process_response(connection, response)
         except Exception as e:
             # TODO: maybe we should send an error back to the user. But not sure yet.
