@@ -16,6 +16,7 @@ class Stream(Base):
     added_at = Column(DateTime, nullable=False, default=func.now())
 
     quotes = relationship("Quote", order_by="Quote.qid", back_populates="stream")
+    counters = relationship("Counter", back_populates="stream")
 
     def channel_name(self) -> ChannelName:
         return ChannelName(self.name)
@@ -42,6 +43,21 @@ class Quote(Base):
         return (f"<Quote(qid={self.qid}, text='{self.text}', channel={self.channel}, "
                 f"added_by='{self.added_by}', added_at={self.added_at}, deleted={self.deleted}, "
                 f"deleted_by='{self.deleted_by}', deleted_at={self.deleted_at})>")
+
+class Counter(Base):
+    __tablename__ = 'counters'
+    name = Column(String, primary_key=True)
+    channel = Column(String, ForeignKey('streams.name'), primary_key=True)
+    count = Column("current_count", Integer, nullable=False, default=0)
+    added_by = Column(String, nullable=False)
+    added_at = Column(DateTime, nullable=False, default=func.now())
+
+    # Define a relationship (this is optional and for convenience)
+    stream = relationship("Stream", back_populates="counters")
+
+    def __repr__(self):
+        return (f"<Counter(name={self.name}, count='{self.count}', channel={self.channel}, "
+                f"added_by='{self.added_by}', added_at={self.added_at})>")
 
 class StreamsDB:
     def __init__(self, session):
@@ -78,20 +94,17 @@ class QuotesDB:
 
     def get_all(self, channel_name: ChannelName) -> [Quote]:
         return self.session.query(Quote). \
-            join(Stream). \
-            filter(Stream.name == channel_name.value, Quote.deleted == False). \
+            filter(Quote.channel == channel_name.value, Quote.deleted == False). \
             all()
 
     def get_quote(self, channel_name: ChannelName, qid) -> Optional[Quote]:
         return self.session.query(Quote). \
-            join(Stream). \
-            filter(Stream.name == channel_name.value, Quote.qid == qid, Quote.deleted == False). \
+            filter(Quote.channel == channel_name.value, Quote.qid == qid, Quote.deleted == False). \
             first()
 
     def get_random_quote(self, channel_name: ChannelName) -> Optional[Quote]:
         return self.session.query(Quote) \
-            .join(Stream) \
-            .filter(Stream.name == channel_name.value, Quote.deleted == False) \
+            .filter(Quote.channel == channel_name.value, Quote.deleted == False) \
             .order_by(func.random()) \
             .first()
 
@@ -119,7 +132,37 @@ class QuotesDB:
                 values(deleted=True, deleted_at=func.now(), deleted_by=username))
         self.session.commit()
 
+class CountersDB:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def get_counter(self, channel_name: ChannelName, name: str) -> Optional[Counter]:
+        return self.session.query(Counter). \
+            filter(Counter.channel == channel_name.value, Counter.name == name). \
+            first()
+
+    def insert_counter(self, channel_name: ChannelName, username: str, name: str) -> Counter:
+        insert_stmt = Counter.__table__.insert().values(
+            name=name,
+            added_by=username,
+            channel=channel_name.value,
+        )
+        self.session.execute(insert_stmt)
+        self.session.commit()
+        return self.session.get(Counter, {"channel": channel_name.value, "name": name})
+
+    def inc_counter(self, channel_name: ChannelName, name: str) -> None:
+        self.session.execute(
+            update(Counter).
+                where(Counter.name == name).
+                where(Counter.stream.has(name=channel_name.value)).
+                values(count=Counter.count + 1).
+                execution_options(synchronize_session="fetch")
+        )
+        self.session.commit()
+
 class DB_API:
     def __init__(self, db_session):
         self.streams = StreamsDB(db_session)
         self.quotes = QuotesDB(db_session)
+        self.counters = CountersDB(db_session)

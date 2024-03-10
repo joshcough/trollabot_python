@@ -99,6 +99,22 @@ class DelQuoteAction(QuoteAction):
         return Permission.MOD
 
 @dataclass
+class AddCounterAction(Action):
+    name: str
+
+    @property
+    def permission(self) -> Permission:
+        return Permission.MOD
+
+@dataclass
+class IncCounterAction(Action):
+    name: str
+
+    @property
+    def permission(self) -> Permission:
+        return Permission.ANYONE
+
+@dataclass
 class BotCommand(ABC):
     name: str
     pattern: Pattern
@@ -108,44 +124,44 @@ class BotCommand(ABC):
         match = self.pattern.match(message.text)
         return self.body(message.channel_name, message.username, match) if match is not None else None
 
+name_pattern = "([A-Za-z][A-Za-z0-9_]*)"
+
+def build_pattern(command: str, pattern: str) -> Pattern:
+    return re.compile(f"^!{command}(?:\\s+)?{pattern}$", re.IGNORECASE)
+
+def buildCommand(name: str, pat: str, body) -> BotCommand:
+    full_pattern: Pattern = build_pattern(name, pat)
+    return BotCommand(f"!{name}", full_pattern, body)
+
 ###
 # JOIN STREAM CODE
 ###
-join_stream_pattern: Pattern = re.compile(r"^!join\s+(.+)", re.IGNORECASE)
-
 def join_stream(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
     stream_to_join = match.group(1)
     return JoinStreamAction(channel_name, username, ChannelName(stream_to_join))
 
-join_stream_command: BotCommand = BotCommand("!join", join_stream_pattern, join_stream)
+join_stream_command: BotCommand = buildCommand("join", name_pattern, join_stream)
 
 ###
 # PART STREAM CODE
 ###
-part_stream_pattern: Pattern = re.compile(r"^!part\s+(.+)", re.IGNORECASE)
-
 def part_stream(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
     stream_to_part = match.group(1)
     return PartStreamAction(channel_name, username, ChannelName(stream_to_part))
 
-part_stream_command: BotCommand = BotCommand("!part", part_stream_pattern, part_stream)
+part_stream_command: BotCommand = buildCommand("part", name_pattern, part_stream)
 
 ###
 # PRINT STREAMS CODE
 ###
-print_streams_pattern: Pattern = re.compile(r"^!print_streams", re.IGNORECASE)
-
 def print_streams(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
     return PrintStreamsAction(channel_name, username)
 
-print_streams_command: BotCommand = BotCommand("!print_streams", print_streams_pattern, print_streams)
-
+print_streams_command: BotCommand = buildCommand("print_streams", "", print_streams)
 
 ###
 # GET QUOTE CODE
 ###
-get_quote_pattern: Pattern = re.compile(r"^!quote(?:\s+(\d+))?$", re.IGNORECASE)
-
 def get_quote(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
     qid = match.group(1)
     if qid:
@@ -153,29 +169,43 @@ def get_quote(channel_name: ChannelName, username: str, match: ReMatch) -> Actio
     else:
         return GetRandomQuoteAction(channel_name, username)
 
-get_quote_command: BotCommand = BotCommand("!quote", get_quote_pattern, get_quote)
+get_quote_command: BotCommand = buildCommand("quote", r"(\d+)?", get_quote)
 
 ###
 # ADD QUOTE CODE
 ###
-add_quote_pattern: Pattern = re.compile(r"^!addQuote\s+(.+)", re.IGNORECASE)
-
 def add_quote(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
     quote_text = match.group(1)
     return AddQuoteAction(channel_name, username, quote_text)
 
-add_quote_command: BotCommand = BotCommand("!addQuote", add_quote_pattern, add_quote)
+add_quote_command: BotCommand = buildCommand("addQuote", "(.+)", add_quote)
 
 ###
 # DELETE QUOTE CODE
 ###
-del_quote_pattern: Pattern = re.compile(r"^!delQuote\s+(\d+)$", re.IGNORECASE)
-
 def del_quote(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
     qid = match.group(1)
     return DelQuoteAction(channel_name, username, int(qid))
 
-del_quote_command: BotCommand = BotCommand("!delQuote", del_quote_pattern, del_quote)
+del_quote_command: BotCommand = buildCommand("delQuote", "(\\d+)", del_quote)
+
+###
+# ADD COUNTER CODE
+###
+def add_counter(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
+    counter_name = match.group(1)
+    return AddCounterAction(channel_name, username, counter_name)
+
+add_counter_command: BotCommand = buildCommand("addCounter", name_pattern, add_counter)
+
+###
+# INC COUNTER CODE
+###
+def inc_counter(channel_name: ChannelName, username: str, match: ReMatch) -> Action:
+    counter_name = match.group(1)
+    return IncCounterAction(channel_name, username, counter_name)
+
+inc_counter_command: BotCommand = buildCommand("incCounter", name_pattern, inc_counter)
 
 @dataclass
 class Response:
@@ -238,9 +268,15 @@ def run_action(db_api: DB_API, action: Action) -> Optional[Response]:
 commands = [
     join_stream_command,
     part_stream_command,
+    print_streams_command,
     get_quote_command,
     add_quote_command,
-    del_quote_command
+    del_quote_command,
+    # TODO: search quotes
+    # addCounterCommand, incCounterCommand
+    # score, player, opponent
+    # help, buildInfo
+    # addUserCommandCommand, editUserCommandCommand, deleteUserCommandCommand
 ]
 
 def get_permission_level(msg: Message) -> Permission:
@@ -256,8 +292,8 @@ def get_permission_level(msg: Message) -> Permission:
 def process_message(db_api: DB_API, msg: Message) -> Optional[Response]:
     for command in commands:
         action: Action = command.to_action(msg)
-        print(f"action for {command}: {action}")
         if action is not None:
+            print(f"action for {command}: {action}")
             if get_permission_level(msg) >= action.permission:
                 return run_action(db_api, action)
             else:

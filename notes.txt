@@ -5,11 +5,12 @@ to install, i have to do:
 for some reason, other commands dont seem to work properly and i end up getting no module found errors or wahtever.
 
 
-
-
-
-trollabot::DATABASE=> select * from quotes;
- id | qid |                                text                                | stream_id |   added_by    |          added_at          | deleted | deleted_by | deleted_at
-----+-----+--------------------------------------------------------------------+-----------+---------------+----------------------------+---------+------------+------------
-  1 |   1 | hi                                                                 |         1 | artofthetroll | 2024-03-07 19:02:24.531056 | f       |            |
-  2 |   1 | We finally got rid of Nili and Jordan, we finally got a solid team |         2 | batbeetch     | 2024-03-07 19:02:51.757159 | f       |            |
+2024-03-09T19:46:54.276375+00:00 app[worker.1]: Getting random quote
+2024-03-09T19:46:54.278251+00:00 app[worker.1]: An error occurred: (psycopg2.errors.InFailedSqlTransaction) current transaction is aborted, commands ignored until end of transaction block
+2024-03-09T19:46:54.278252+00:00 app[worker.1]:
+2024-03-09T19:46:54.278253+00:00 app[worker.1]: [SQL: SELECT quotes.qid AS quotes_qid, quotes.text AS quotes_text, quotes.channel AS quotes_channel, quotes.added_by AS quotes_added_by, quotes.added_at AS quotes_added_at, quotes.deleted AS quotes_deleted, quotes.deleted_by AS quotes_deleted_by, quotes.deleted_at AS quotes_deleted_at
+2024-03-09T19:46:54.278254+00:00 app[worker.1]: FROM quotes JOIN streams ON streams.name = quotes.channel
+2024-03-09T19:46:54.278255+00:00 app[worker.1]: WHERE streams.name = %(name_1)s AND quotes.deleted = false ORDER BY random()
+2024-03-09T19:46:54.278255+00:00 app[worker.1]:  LIMIT %(param_1)s]
+2024-03-09T19:46:54.278256+00:00 app[worker.1]: [parameters: {'name_1': 'artofthetroll', 'param_1': 1}]
+2024-03-09T19:46:54.278256+00:00 app[worker.1]: (Background on this error at: https://sqlalche.me/e/20/2j85)

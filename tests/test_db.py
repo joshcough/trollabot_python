@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
-from app.trollabot.database import Base, Quote, Stream, DB_API
+from app.trollabot.database import Base, Quote, Stream, DB_API, Counter
 from app.trollabot.messages import ChannelName
 
 @pytest.fixture(scope="module")
@@ -22,6 +22,7 @@ def db_api():
 def clean_db(db_api):
     yield
     db_session = db_api.streams.session
+    db_session.query(Counter).delete()
     db_session.query(Quote).delete()
     db_session.query(Stream).delete()
     db_session.commit()
@@ -71,3 +72,20 @@ def test_can_delete_quote(db_api, clean_db):
     assert db_api.quotes.get_quote(ChannelName("test"), q1.qid).text == "hi there"
     db_api.quotes.delete_quote(ChannelName("test"), q1.qid, "tester")
     assert db_api.quotes.get_quote(ChannelName("test"), q1.qid) == None
+
+def test_can_create_and_increment_counters(db_api, clean_db):
+    troll = db_api.streams.insert_stream(ChannelName("test"), "tester")
+
+    db_api.counters.insert_counter(troll.channel_name(), "tester", "housed")
+    db_api.counters.inc_counter(troll.channel_name(), "housed")
+    db_api.counters.inc_counter(troll.channel_name(), "housed")
+    db_api.counters.inc_counter(troll.channel_name(), "housed")
+    counter = db_api.counters.get_counter(troll.channel_name(), "housed")
+    assert counter.count == 3
+
+    db_api.counters.insert_counter(troll.channel_name(), "tester", "z")
+    db_api.counters.inc_counter(troll.channel_name(), "z")
+    db_api.counters.inc_counter(troll.channel_name(), "z")
+    counterz = db_api.counters.get_counter(troll.channel_name(), "z")
+
+    assert counterz.count == 2
