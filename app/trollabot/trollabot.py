@@ -8,7 +8,6 @@ from testcontainers.postgres import PostgresContainer
 
 from app.trollabot.database import Base, DB_API
 from app.trollabot.irc_bot import IrcConfig, TwitchIRCBot, setup_connection
-from app.trollabot.messages import ChannelName
 
 def run_with_pg_connection_string(conn_str, on_engine_create) -> None:
     if conn_str.startswith("postgres://"):
@@ -23,7 +22,7 @@ def run_with_pg_connection_string(conn_str, on_engine_create) -> None:
     reactor, connection = setup_connection(irc_config=IrcConfig())
     make_shutdown_handler(reactor, db_session)
 
-    bot: TwitchIRCBot = TwitchIRCBot(connection, db_api)
+    _: TwitchIRCBot = TwitchIRCBot(connection, db_api)
     reactor.process_forever()
 
     db_session.close()

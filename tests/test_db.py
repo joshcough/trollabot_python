@@ -1,31 +1,5 @@
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from testcontainers.postgres import PostgresContainer
-
-from app.trollabot.database import Base, Quote, Stream, DB_API, Counter
+from app.trollabot.database import Base, Quote, Stream, DB_API, Counter, Score
 from app.trollabot.messages import ChannelName
-
-@pytest.fixture(scope="module")
-def db_api():
-    with PostgresContainer("postgres:latest") as postgres:
-        engine = create_engine(postgres.get_connection_url(), isolation_level="REPEATABLE READ")
-        Base.metadata.create_all(engine)
-        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        db_session = TestingSessionLocal()
-        db = DB_API(db_session)
-        yield db
-        db_session.close()
-        Base.metadata.drop_all(bind=engine)
-
-@pytest.fixture(scope="function")
-def clean_db(db_api):
-    yield
-    db_session = db_api.streams.session
-    db_session.query(Counter).delete()
-    db_session.query(Quote).delete()
-    db_session.query(Stream).delete()
-    db_session.commit()
 
 def test_insert_and_get_stream(db_api, clean_db):
     new_stream = db_api.streams.insert_stream(ChannelName("test"), "tester")
@@ -89,3 +63,18 @@ def test_can_create_and_increment_counters(db_api, clean_db):
     counterz = db_api.counters.get_counter(troll.channel_name(), "z")
 
     assert counterz.count == 2
+
+def test_scores(db_api, clean_db):
+    troll = db_api.streams.insert_stream(ChannelName("test"), "tester")
+
+    default_score = Score(
+        channel="test",
+        player1="player",
+        player2="opponent",
+        player1_score=0,
+        player2_score=0
+    )
+
+    score1 = db_api.scores.get_score(troll.channel_name())
+    assert score1 == default_score
+
