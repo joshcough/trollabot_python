@@ -356,6 +356,10 @@ def run_action(db_api: DB_API, action: Action) -> Optional[Response]:
         print(f"Deleting quote {action.qid}")
         db_api.quotes.delete_quote(action.channel_name, action.qid, action.username)
         return RespondWithResponse(action.channel_name, f"Deleted quote {action.qid}")
+    elif isinstance(action, GetScoreAction):
+        print(f"Getting score")
+        score = db_api.scores.get_score(action.channel_name)
+        return RespondWithResponse(action.channel_name, score.to_irc())
     elif isinstance(action, SetScoreAction):
         print(f"Setting score: {action}")
         score = db_api.scores.upsert_score(action.channel_name, action.p1_score, action.p2_score)
