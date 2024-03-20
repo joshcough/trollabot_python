@@ -176,16 +176,27 @@ class CountersDB:
             first()
 
     def insert_counter(self, channel_name: ChannelName, username: str, name: str) -> Counter:
-        insert_stmt = Counter.__table__.insert().values(
-            name=name,
-            added_by=username,
-            channel=channel_name.value,
-        )
-        self.session.execute(insert_stmt)
-        self.session.commit()
-        return self.session.get(Counter, {"channel": channel_name.value, "name": name})
+        instance = self.session.query(Counter).filter_by(name=name, channel=channel_name.value).first()
+        if instance:
+            return instance
+        else:
+            insert_stmt = Counter.__table__.insert().values(
+                name=name,
+                added_by=username,
+                channel=channel_name.value,
+            )
+            self.session.execute(insert_stmt)
+            self.session.commit()
+            return self.session.get(Counter, {"channel": channel_name.value, "name": name})
 
-    def inc_counter(self, channel_name: ChannelName, name: str) -> None:
+    def delete_counter(self, channel_name: ChannelName, username: str, name: str) -> None:
+        counter_to_delete = self.session.query(Counter).filter_by(name=name, channel=channel_name.value).first()
+
+        if counter_to_delete:
+            self.session.delete(counter_to_delete)
+            self.session.commit()
+
+    def inc_counter(self, channel_name: ChannelName, name: str) -> Optional[Counter]:
         self.session.execute(
             update(Counter).
                 where(Counter.name == name).
@@ -194,6 +205,7 @@ class CountersDB:
                 execution_options(synchronize_session="fetch")
         )
         self.session.commit()
+        return self.session.get(Counter, {"channel": channel_name.value, "name": name})
 
 class ScoresDB:
     def __init__(self, session: Session):

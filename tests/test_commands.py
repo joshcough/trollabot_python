@@ -93,4 +93,12 @@ def test_help_command(db_api):
 
 def test_commands_command(db_api):
     response = process_message(db_api, mk_message("!commands", user="artofthetroll", tags=mod_tags))
-    assert response == RespondWithResponse(test_stream, "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !addCounter, !incCounter, !help, !commands")
+    assert response == RespondWithResponse(test_stream, "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !count, !addCounter, !deleteCounter, !incCounter, !help, !commands")
+
+def test_counter_commands(db_api):
+    process_message(db_api, mk_message("!addCounter c", user="artofthetroll", tags=mod_tags))
+    process_message(db_api, mk_message("!incCounter c", user="artofthetroll", tags=mod_tags))
+    process_message(db_api, mk_message("!incCounter c", user="artofthetroll", tags=mod_tags))
+    assert db_api.counters.get_counter(test_stream, "c").count == 2
+    process_message(db_api, mk_message("!deleteCounter c", user="artofthetroll", tags=mod_tags))
+    assert db_api.counters.get_counter(test_stream, "c") == None

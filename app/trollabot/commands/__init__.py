@@ -8,7 +8,8 @@ from app.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from app.trollabot.commands.base.parsing import channel_name_parser, int_parser, name_parser, token
 from app.trollabot.commands.base.permission import Permission, get_permission_level
 from app.trollabot.commands.base.response import Response, JoinResponse, PartResponse, RespondWithResponse
-from app.trollabot.commands.counters import add_counter_command, inc_counter_command
+from app.trollabot.commands.counters import add_counter_command, inc_counter_command, delete_counter_command, \
+    get_count_command
 from app.trollabot.commands.quotes import get_quote_command, add_quote_command, del_quote_command
 from app.trollabot.commands.scores import score_command
 from app.trollabot.commands.streams import join_stream_command, part_stream_command, print_streams_command
@@ -77,7 +78,9 @@ commands: list[BotCommand] = [
     add_quote_command,
     del_quote_command,
     score_command,
+    get_count_command,
     add_counter_command,
+    delete_counter_command,
     inc_counter_command,
     help_command,
     commands_command,
