@@ -48,8 +48,8 @@ class PrintStreamsAction(StreamsAction):
 
     def run(self, db_api: DB_API) -> Response:
         print(f"Getting streams")
-        streams = db_api.streams
-        return RespondWithResponse(self.channel_name, f"{streams}")
+        streams = db_api.streams.get_joined_streams()
+        return RespondWithResponse(self.channel_name, ", ".join(list(map(lambda x: x.name, streams))))
 
 ###
 # JOIN STREAM CODE
