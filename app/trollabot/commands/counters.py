@@ -18,7 +18,7 @@ class GetCountAction(Action):
 
     def run(self, db_api: DB_API) -> Response:
         print(f"Getting count for {self.name}")
-        counter = db_api.counters.get_counter(self.channel_name, self.username, self.name)
+        counter = db_api.counters.get_counter(self.channel_name, self.name)
         if counter:
             return RespondWithResponse(self.channel_name, f"{self.name}: {counter.count}")
         else:

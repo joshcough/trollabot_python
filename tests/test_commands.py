@@ -100,5 +100,9 @@ def test_counter_commands(db_api):
     process_message(db_api, mk_message("!incCounter c", user="artofthetroll", tags=mod_tags))
     process_message(db_api, mk_message("!incCounter c", user="artofthetroll", tags=mod_tags))
     assert db_api.counters.get_counter(test_stream, "c").count == 2
+
+    response = process_message(db_api, mk_message("!count c", user="artofthetroll", tags=mod_tags))
+    assert response == RespondWithResponse(test_stream, "c: 2")
+
     process_message(db_api, mk_message("!deleteCounter c", user="artofthetroll", tags=mod_tags))
     assert db_api.counters.get_counter(test_stream, "c") == None
