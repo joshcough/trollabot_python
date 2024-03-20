@@ -1,7 +1,7 @@
 from app.trollabot.commands import add_quote_command, get_quote_command, AddQuoteAction, GetExactQuoteAction, \
     GetRandomQuoteAction, BotCommand, del_quote_command, DelQuoteAction, join_stream_command, JoinStreamAction, \
     part_stream_command, PartStreamAction, score_command, SetAllScoreAction, process_message, GetScoreAction, \
-    SetScoreAction
+    SetScoreAction, RespondWithResponse
 from app.trollabot.database import Score
 from app.trollabot.messages import Message, Tags, ChannelName
 
@@ -76,3 +76,14 @@ def test_score_command(db_api):
     process_message(db_api, mk_message("!score 1 5", tags=mod_tags))
     expected_score = Score(channel="test_stream", player1=None, player2=None, player1_score=1, player2_score=5)
     assert expected_score == db_api.scores.get_score(test_stream)
+
+def test_help_command(db_api):
+    response = process_message(db_api, mk_message("!help !addQuote", user="artofthetroll", tags=mod_tags))
+    assert response == RespondWithResponse(test_stream, "!addQuote <text>")
+    response2 = process_message(db_api, mk_message("!help !help", user="artofthetroll", tags=mod_tags))
+    assert response2 == RespondWithResponse(test_stream, "!help <command_name>. Examples: !help score, or !help !score")
+
+    response = process_message(db_api, mk_message("!help addQuote", user="artofthetroll", tags=mod_tags))
+    assert response == RespondWithResponse(test_stream, "!addQuote <text>")
+    response2 = process_message(db_api, mk_message("!help help", user="artofthetroll", tags=mod_tags))
+    assert response2 == RespondWithResponse(test_stream, "!help <command_name>. Examples: !help score, or !help !score")

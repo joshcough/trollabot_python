@@ -9,7 +9,7 @@ from app.trollabot.database import Base, Quote, Stream, DB_API, Counter, Score
 def db_session():
     with PostgresContainer("postgres:latest") as postgres:
         engine = create_engine(postgres.get_connection_url())
-        Base.metadata.create_all(engine)  # Create your tables
+        Base.metadata.create_all(engine)
         TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
         sess = TestingSessionLocal()
@@ -21,12 +21,12 @@ def db_session():
         Base.metadata.drop_all(bind=engine)
 
 @pytest.fixture(scope="module")
-def db_api(db_session):
+def db_api(db_session) -> DB_API:
     db = DB_API(db_session)
     yield db
 
 @pytest.fixture(scope="function")
-def clean_db(db_api):
+def clean_db(db_api: DB_API):
     yield
     db_session = db_api.streams.session
     db_session.query(Counter).delete()
@@ -34,3 +34,4 @@ def clean_db(db_api):
     db_session.query(Score).delete()
     db_session.query(Stream).delete()
     db_session.commit()
+

@@ -1,7 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, List
 from typing import Callable, Optional
 
 from parsy import Parser as ParsyParser, regex, Parser, success, digit, seq, any_char, ParseError, \
@@ -149,6 +149,14 @@ class SetAllScoreAction(Action):
         return f"<SetAllScoreAction(p1='{self.p1}', p1_score={self.p1_score}, " \
                f"p2='{self.p2}', p2_score={self.p2_score})>"
 
+@dataclass
+class HelpAction(Action):
+    command_name: str
+
+    @property
+    def permission(self) -> Permission:
+        return Permission.ANYONE
+
 class ScoreParseResult:
     pass
 
@@ -178,6 +186,7 @@ class BotCommand(ABC):
     name: str
     parser: ParsyParser
     body: Callable[[ChannelName, str, Optional[Any]], Action]
+    help: str
 
     def to_action(self, message: Message) -> Optional[Action]:
         try:
@@ -205,9 +214,8 @@ def build_parser(command: str, args_parser) -> Parser:
     # Combine the parts into a larger parser
     return command_prefix >> optional_whitespace >> args_parser
 
-def buildCommand(name: str, args_parser: Parser, body) -> BotCommand:
-    full_pattern: Parser = build_parser(name, args_parser)
-    return BotCommand(f"!{name}", full_pattern, body)
+def buildCommand(name: str, args_parser: Parser, body, help: str) -> BotCommand:
+    return BotCommand(name, build_parser(name, args_parser), body, help)
 
 ###
 # JOIN STREAM CODE
@@ -215,7 +223,9 @@ def buildCommand(name: str, args_parser: Parser, body) -> BotCommand:
 def join_stream(channel_name: ChannelName, username: str, channel_to_join: ChannelName) -> Action:
     return JoinStreamAction(channel_name, username, channel_to_join)
 
-join_stream_command: BotCommand = buildCommand("join", channel_name_parser, join_stream)
+join_help: str = "!join <stream>"
+
+join_stream_command: BotCommand = buildCommand("join", channel_name_parser, join_stream, join_help)
 
 ###
 # PART STREAM CODE
@@ -223,7 +233,9 @@ join_stream_command: BotCommand = buildCommand("join", channel_name_parser, join
 def part_stream(channel_name: ChannelName, username: str, channel_to_join: ChannelName) -> Action:
     return PartStreamAction(channel_name, username, channel_to_join)
 
-part_stream_command: BotCommand = buildCommand("part", channel_name_parser, part_stream)
+part_help: str = "!part <stream>"
+
+part_stream_command: BotCommand = buildCommand("part", channel_name_parser, part_stream, part_help)
 
 ###
 # PRINT STREAMS CODE
@@ -231,7 +243,9 @@ part_stream_command: BotCommand = buildCommand("part", channel_name_parser, part
 def print_streams(channel_name: ChannelName, username: str, _: None) -> Action:
     return PrintStreamsAction(channel_name, username)
 
-print_streams_command: BotCommand = buildCommand("print_streams", success(None), print_streams)
+print_streams_help: str = "!print_streams"
+
+print_streams_command: BotCommand = buildCommand("print_streams", success(None), print_streams, print_streams_help)
 
 ###
 # GET QUOTE CODE
@@ -242,7 +256,9 @@ def get_quote(channel_name: ChannelName, username: str, qid: Optional[int]) -> A
     else:
         return GetRandomQuoteAction(channel_name, username)
 
-get_quote_command: BotCommand = buildCommand("quote", int_parser.optional(), get_quote)
+get_quote_help = "For a random quote: !quote or for a specific quote: !quote <number>"
+
+get_quote_command: BotCommand = buildCommand("quote", int_parser.optional(), get_quote, get_quote_help)
 
 ###
 # ADD QUOTE CODE
@@ -250,7 +266,9 @@ get_quote_command: BotCommand = buildCommand("quote", int_parser.optional(), get
 def add_quote(channel_name: ChannelName, username: str, quote_text: str) -> Action:
     return AddQuoteAction(channel_name, username, quote_text)
 
-add_quote_command: BotCommand = buildCommand("addQuote", any_char.many().concat(), add_quote)
+add_quote_help: str = "!addQuote <text>"
+
+add_quote_command: BotCommand = buildCommand("addQuote", any_char.many().concat(), add_quote, add_quote_help)
 
 ###
 # DELETE QUOTE CODE
@@ -258,7 +276,9 @@ add_quote_command: BotCommand = buildCommand("addQuote", any_char.many().concat(
 def del_quote(channel_name: ChannelName, username: str, qid: int) -> Action:
     return DelQuoteAction(channel_name, username, qid)
 
-del_quote_command: BotCommand = buildCommand("delQuote", int_parser, del_quote)
+del_quote_help: str = "!delQuote <number>"
+
+del_quote_command: BotCommand = buildCommand("delQuote", int_parser, del_quote, del_quote_help)
 
 ###
 # ADD COUNTER CODE
@@ -266,7 +286,9 @@ del_quote_command: BotCommand = buildCommand("delQuote", int_parser, del_quote)
 def add_counter(channel_name: ChannelName, username: str, counter_name: str) -> Action:
     return AddCounterAction(channel_name, username, counter_name)
 
-add_counter_command: BotCommand = buildCommand("addCounter", name_parser, add_counter)
+add_counter_help: str = "!addCounter <name>"
+
+add_counter_command: BotCommand = buildCommand("addCounter", name_parser, add_counter, add_counter_help)
 
 ###
 # INC COUNTER CODE
@@ -274,7 +296,9 @@ add_counter_command: BotCommand = buildCommand("addCounter", name_parser, add_co
 def inc_counter(channel_name: ChannelName, username: str, counter_name: str) -> Action:
     return IncCounterAction(channel_name, username, counter_name)
 
-inc_counter_command: BotCommand = buildCommand("incCounter", name_parser, inc_counter)
+inc_counter_help: str = "!incCounter <name>"
+
+inc_counter_command: BotCommand = buildCommand("incCounter", name_parser, inc_counter, inc_counter_help)
 
 ###
 # INC COUNTER CODE
@@ -303,7 +327,44 @@ def score_body(channel_name: ChannelName, username: str, res: ScoreParseResult) 
     else:
         return None
 
-score_command: BotCommand = buildCommand("score", score_command_parser, score_body)
+get_score_help: str = "1. To get the score: !score"
+set_score_only_help: str = "2. To set the score without setting player names use: !score <p1Score: number> <p2Score: number>. Example: !score 4 0"
+set_players_and_score_help: str = "3. To set the score AND the players use !score <p1: name> <p1Score: number> <p2: name> <p2Score: number>. Example: !score daut 4 viper 0"
+score_command_help: str = get_score_help + ", " + set_score_only_help + ", " + set_players_and_score_help
+
+score_command: BotCommand = buildCommand("score", score_command_parser, score_body, score_command_help)
+
+###
+# HELP COMMAND
+###
+
+help_command_parser: Parser = regex("!").optional() >> name_parser
+
+def help_command_body(channel_name: ChannelName, username: str, command_name: str) -> Action:
+    return HelpAction(channel_name, username, command_name)
+
+help_command_help: str = "!help <command_name>. Examples: !help score, or !help !score"
+
+help_command: BotCommand = buildCommand("help", help_command_parser, help_command_body, help_command_help)
+
+
+###
+# ALL COMMANDS
+###
+commands: list[BotCommand] = [
+    join_stream_command,
+    part_stream_command,
+    print_streams_command,
+    get_quote_command,
+    add_quote_command,
+    del_quote_command,
+    score_command,
+    help_command,
+    # TODO: search quotes, player, opponent, buildInfo
+    # addUserCommandCommand, editUserCommandCommand, deleteUserCommandCommand
+]
+
+commands_dict: dict = {commands[i].name: commands[i] for i in range(0, len(commands))}
 
 @dataclass
 class Response:
@@ -369,24 +430,16 @@ def run_action(db_api: DB_API, action: Action) -> Optional[Response]:
         score = db_api.scores.upsert_score_all(action.channel_name, action.p1, action.p1_score,
                                                action.p2, action.p2_score)
         return RespondWithResponse(action.channel_name, score.to_irc())
+    elif isinstance(action, HelpAction):
+        print(f"Getting help: {action}")
+        cmd: BotCommand = commands_dict[action.command_name]
+        if cmd is not None:
+            return RespondWithResponse(action.channel_name, cmd.help)
+        else:
+            return RespondWithResponse(action.channel_name, f"No such command: {action.command_name}")
     else:
         print(f"Unknown action: {action}")
         return None
-
-###
-# ALL COMMANDS
-###
-commands = [
-    join_stream_command,
-    part_stream_command,
-    print_streams_command,
-    get_quote_command,
-    add_quote_command,
-    del_quote_command,
-    score_command,
-    # TODO: search quotes, player, opponent, help, buildInfo
-    # addUserCommandCommand, editUserCommandCommand, deleteUserCommandCommand
-]
 
 def get_permission_level(msg: Message) -> Permission:
     if msg.from_god():
