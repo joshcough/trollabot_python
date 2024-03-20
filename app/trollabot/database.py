@@ -118,9 +118,11 @@ class StreamsDB:
         if existing_stream is None:
             self.insert_stream(channel_name, username)
         self.session.execute(update(Stream).where(Stream.name == channel_name.value).values(joined=True))
+        self.session.commit()
 
     def part(self, channel_name: ChannelName) -> None:
         self.session.execute(update(Stream).where(Stream.name == channel_name.value).values(joined=False))
+        self.session.commit()
 
 class QuotesDB:
     def __init__(self, session: Session):
