@@ -375,6 +375,8 @@ commands: list[BotCommand] = [
     add_quote_command,
     del_quote_command,
     score_command,
+    add_counter_command,
+    inc_counter_command,
     help_command,
     commands_command,
     # TODO: search quotes, player, opponent, buildInfo

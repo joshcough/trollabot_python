@@ -90,4 +90,4 @@ def test_help_command(db_api):
 
 def test_commands_command(db_api):
     response = process_message(db_api, mk_message("!commands", user="artofthetroll", tags=mod_tags))
-    assert response == RespondWithResponse(test_stream, "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !help, !commands")
+    assert response == RespondWithResponse(test_stream, "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !addCounter, !incCounter, !help, !commands")
