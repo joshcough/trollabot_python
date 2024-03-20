@@ -87,3 +87,7 @@ def test_help_command(db_api):
     assert response == RespondWithResponse(test_stream, "!addQuote <text>")
     response2 = process_message(db_api, mk_message("!help help", user="artofthetroll", tags=mod_tags))
     assert response2 == RespondWithResponse(test_stream, "!help <command_name>. Examples: !help score, or !help !score")
+
+def test_commands_command(db_api):
+    response = process_message(db_api, mk_message("!commands", user="artofthetroll", tags=mod_tags))
+    assert response == RespondWithResponse(test_stream, "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !help, !commands")

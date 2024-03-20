@@ -157,6 +157,12 @@ class HelpAction(Action):
     def permission(self) -> Permission:
         return Permission.ANYONE
 
+@dataclass
+class GetCommandsAction(Action):
+    @property
+    def permission(self) -> Permission:
+        return Permission.ANYONE
+
 class ScoreParseResult:
     pass
 
@@ -349,6 +355,16 @@ help_command: BotCommand = buildCommand("help", help_command_parser, help_comman
 
 
 ###
+# COMMANDS COMMAND
+###
+
+def commands_command_body(channel_name: ChannelName, username: str, _: None) -> Action:
+    return GetCommandsAction(channel_name, username)
+
+commands_command: BotCommand = buildCommand("commands", success(None), commands_command_body, "!commands")
+
+
+###
 # ALL COMMANDS
 ###
 commands: list[BotCommand] = [
@@ -360,6 +376,7 @@ commands: list[BotCommand] = [
     del_quote_command,
     score_command,
     help_command,
+    commands_command,
     # TODO: search quotes, player, opponent, buildInfo
     # addUserCommandCommand, editUserCommandCommand, deleteUserCommandCommand
 ]
@@ -437,6 +454,9 @@ def run_action(db_api: DB_API, action: Action) -> Optional[Response]:
             return RespondWithResponse(action.channel_name, cmd.help)
         else:
             return RespondWithResponse(action.channel_name, f"No such command: {action.command_name}")
+    elif isinstance(action, GetCommandsAction):
+        print("Getting commands")
+        return RespondWithResponse(action.channel_name, ", ".join(f"!{item}" for item in list(commands_dict.keys())))
     else:
         print(f"Unknown action: {action}")
         return None
