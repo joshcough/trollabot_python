@@ -1,6 +1,6 @@
 #! /usr/bin/env python
-from app.trollabot.commands import process_message, Response, RespondWithResponse, JoinResponse, PartResponse, \
-    LogErrResponse
+from app.trollabot.commands import process_message
+from app.trollabot.commands.base.response import Response, RespondWithResponse, JoinResponse, PartResponse, LogErrResponse
 from app.trollabot.database import DB_API
 import irc.client
 import os

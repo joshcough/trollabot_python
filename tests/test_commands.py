@@ -1,9 +1,12 @@
-from app.trollabot.commands import add_quote_command, get_quote_command, AddQuoteAction, GetExactQuoteAction, \
-    GetRandomQuoteAction, BotCommand, del_quote_command, DelQuoteAction, join_stream_command, JoinStreamAction, \
-    part_stream_command, PartStreamAction, score_command, SetAllScoreAction, process_message, GetScoreAction, \
-    SetScoreAction, RespondWithResponse
+from app.trollabot.commands import process_message
+from app.trollabot.commands.scores import score_command, GetScoreAction, SetScoreAction, SetAllScoreAction
+from app.trollabot.commands.quotes import add_quote_command, AddQuoteAction, get_quote_command, GetExactQuoteAction, \
+    del_quote_command, GetRandomQuoteAction, DelQuoteAction
+from app.trollabot.commands.streams import join_stream_command, part_stream_command, JoinStreamAction, PartStreamAction
+from app.trollabot.commands.base.bot_command import BotCommand
+from app.trollabot.commands.base.response import RespondWithResponse
 from app.trollabot.database import Score
-from app.trollabot.messages import Message, Tags, ChannelName
+from app.trollabot.messages import ChannelName, Tags, Message
 
 test_stream: ChannelName = ChannelName("test_stream")
 test_user = "test-user"
@@ -12,7 +15,7 @@ mod_tags = Tags([{'key': 'mod', 'value': '1'}])
 def mk_message(msg: str, user: str = test_user, tags: Tags = Tags([])) -> Message:
     return Message(test_stream, user, tags, msg)
 
-def to_action(command: BotCommand, msg: str):
+def to_action(command: BotCommand, msg: str) -> object:
     return command.to_action(mk_message(msg))
 
 def test_join_stream_parsing():
