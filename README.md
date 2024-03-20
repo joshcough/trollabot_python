@@ -2,9 +2,16 @@
 
 ## TODO
 
-1. Fix the bug where if someone says !quote before there are quotes, we crash
-2. Deploy to Heroku
-    1. First get the AWS DB migrated over to heroku
-        1. Consider doing this with migrations in python actually
-    2. Then make sure all the env vars are setup in heroku
-    3. Simply deploy.
+### Additional commands
+
+* Quotes: search quotes (!searchQuotes)
+* Scores: !player, !opponent 
+* User commands: !addUserCommandCommand, !editUserCommandCommand, !deleteUserCommandCommand
+* Other: !buildInfo
+* AOE2 specific: !match !elo
+
+### Website
+
+At first, just a basic site showing all the commands and how to use them
+
+Later on, be able to have the score as an html source.
