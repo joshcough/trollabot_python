@@ -113,3 +113,10 @@ set_players_and_score_help: str = "3. To set the score AND the players use !scor
 score_command_help: str = get_score_help + ", " + set_score_only_help + ", " + set_players_and_score_help
 
 score_command: BotCommand = buildCommand("score", score_command_parser, score_body, score_command_help)
+
+###
+# ALL SCORE COMMANDS
+###
+score_commands: list[BotCommand] = [
+    score_command
+]

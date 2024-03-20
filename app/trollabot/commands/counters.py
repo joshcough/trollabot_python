@@ -96,7 +96,6 @@ delete_counter_help: str = "!deleteCounter <name>"
 
 delete_counter_command: BotCommand = buildCommand("deleteCounter", name_parser, delete_counter, delete_counter_help)
 
-
 ###
 # INC COUNTER CODE
 ###
@@ -106,3 +105,13 @@ def inc_counter(channel_name: ChannelName, username: str, counter_name: str) -> 
 inc_counter_help: str = "!incCounter <name>"
 
 inc_counter_command: BotCommand = buildCommand("incCounter", name_parser, inc_counter, inc_counter_help)
+
+###
+# ALL COUNTER COMMANDS
+###
+counter_commands: list[BotCommand] = [
+    get_count_command,
+    add_counter_command,
+    delete_counter_command,
+    inc_counter_command,
+]

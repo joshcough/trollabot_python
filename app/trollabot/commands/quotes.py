@@ -99,3 +99,12 @@ def del_quote(channel_name: ChannelName, username: str, qid: int) -> Action:
 del_quote_help: str = "!delQuote <number>"
 
 del_quote_command: BotCommand = buildCommand("delQuote", int_parser, del_quote, del_quote_help)
+
+###
+# ALL QUOTE COMMANDS
+###
+quote_commands: list[BotCommand] = [
+    get_quote_command,
+    add_quote_command,
+    del_quote_command,
+]

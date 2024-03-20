@@ -9,10 +9,11 @@ from app.trollabot.commands.base.parsing import channel_name_parser, int_parser,
 from app.trollabot.commands.base.permission import Permission, get_permission_level
 from app.trollabot.commands.base.response import Response, JoinResponse, PartResponse, RespondWithResponse
 from app.trollabot.commands.counters import add_counter_command, inc_counter_command, delete_counter_command, \
-    get_count_command
-from app.trollabot.commands.quotes import get_quote_command, add_quote_command, del_quote_command
-from app.trollabot.commands.scores import score_command
-from app.trollabot.commands.streams import join_stream_command, part_stream_command, print_streams_command
+    get_count_command, counter_commands
+from app.trollabot.commands.quotes import get_quote_command, add_quote_command, del_quote_command, quote_commands
+from app.trollabot.commands.scores import score_command, score_commands
+from app.trollabot.commands.streams import join_stream_command, part_stream_command, print_streams_command, \
+    stream_commands
 from app.trollabot.database import DB_API
 from app.trollabot.messages import ChannelName, Message
 
@@ -66,27 +67,21 @@ def commands_command_body(channel_name: ChannelName, username: str, _: None) -> 
 
 commands_command: BotCommand = buildCommand("commands", success(None), commands_command_body, "!commands")
 
-
 ###
 # ALL COMMANDS
 ###
-commands: list[BotCommand] = [
-    join_stream_command,
-    part_stream_command,
-    print_streams_command,
-    get_quote_command,
-    add_quote_command,
-    del_quote_command,
-    score_command,
-    get_count_command,
-    add_counter_command,
-    delete_counter_command,
-    inc_counter_command,
-    help_command,
-    commands_command,
-    # TODO: search quotes, player, opponent, buildInfo
-    # addUserCommandCommand, editUserCommandCommand, deleteUserCommandCommand
-]
+commands: list[BotCommand] = \
+    stream_commands + \
+    quote_commands + \
+    score_commands + \
+    counter_commands + \
+    [help_command, commands_command]
+
+# TODO:
+# Quotes: search quotes,
+# Scores: player, opponent
+# user commands: addUserCommandCommand, editUserCommandCommand, deleteUserCommandCommand
+# other: buildInfo
 
 commands_dict: dict = {commands[i].name: commands[i] for i in range(0, len(commands))}
 

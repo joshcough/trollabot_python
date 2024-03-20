@@ -80,3 +80,12 @@ def print_streams(channel_name: ChannelName, username: str, _: None) -> Action:
 print_streams_help: str = "!print_streams"
 
 print_streams_command: BotCommand = buildCommand("print_streams", success(None), print_streams, print_streams_help)
+
+###
+# ALL STREAM COMMANDS
+###
+stream_commands: list[BotCommand] = [
+    join_stream_command,
+    part_stream_command,
+    print_streams_command,
+]
