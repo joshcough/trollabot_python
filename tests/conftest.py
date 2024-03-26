@@ -3,7 +3,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
 
-from app.trollabot.database import Base, Quote, Stream, DB_API, Counter, Score, UserCommand
+from app.trollabot.database import Base, DB_API
+from app.trollabot.database.counters import Counter
+from app.trollabot.database.quotes import Quote
+from app.trollabot.database.scores import Score
+from app.trollabot.database.streams import Stream
+from app.trollabot.database.user_commands import UserCommand
 
 @pytest.fixture(scope="session")
 def db_session():

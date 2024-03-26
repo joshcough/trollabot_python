@@ -9,7 +9,8 @@ from app.trollabot.commands.base.action import Action
 from app.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from app.trollabot.commands.base.parsing import name_parser, token
 from app.trollabot.commands.base.permission import Permission
-from app.trollabot.database import DB_API, UserCommand
+from app.trollabot.database import DB_API
+from app.trollabot.database.user_commands import UserCommand
 from app.trollabot.messages import ChannelName
 
 class ParseNode(ABC):

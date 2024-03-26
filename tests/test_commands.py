@@ -8,7 +8,7 @@ from app.trollabot.commands.quotes import add_quote_command, AddQuoteAction, get
 from app.trollabot.commands.scores import score_command, GetScoreAction, SetScoreAction, SetAllScoreAction
 from app.trollabot.commands.streams import join_stream_command, part_stream_command, JoinStreamAction, PartStreamAction
 from app.trollabot.commands.user_commands import parse_user_command_body, TextNode, VarNode
-from app.trollabot.database import Score
+from app.trollabot.database.scores import Score
 from app.trollabot.messages import ChannelName, Tags, Message
 
 test_stream: ChannelName = ChannelName("test_stream")
