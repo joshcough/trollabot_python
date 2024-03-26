@@ -2,6 +2,11 @@
 
 ## TODO
 
+* filter out god commands
+* add user commands to the list of commands, maybe
+* or add a !user_commands function that prints the list of commands added by mods
+* or both? not sure
+
 ### Additional commands
 
 * Quotes: search quotes (!searchQuotes)

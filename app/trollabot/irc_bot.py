@@ -18,7 +18,7 @@ class TwitchIRCBot:
 
         # Bind event handlers to the connection object
         self.connection.add_global_handler("welcome", self.on_connect)
-        self.connection.add_global_handler("join", self.on_join)
+        # self.connection.add_global_handler("join", self.on_join)
         self.connection.add_global_handler("disconnect", self.on_disconnect)
         self.connection.add_global_handler("pubmsg", self.on_pubmsg)
 
@@ -33,9 +33,9 @@ class TwitchIRCBot:
                 connection.join(channel.channel_name().as_irc())
                 connection.privmsg(channel.channel_name().as_irc(), "Hello ladies, I'm back.")
 
-    def on_join(connection, event):
-        print(f"on_join {connection} {event}")
-        # connection.privmsg(channel, "hola")
+    # def on_join(connection, event):
+    #     print(f"on_join {connection} {event}")
+    #     # connection.privmsg(channel, "hola")
 
     def on_disconnect(self, connection, event) -> None:
         print(f"on_disconnect {connection} {event}")
