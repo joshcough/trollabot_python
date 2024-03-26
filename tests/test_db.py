@@ -78,3 +78,14 @@ def test_scores(db_api, clean_db):
     score1 = db_api.scores.get_score(troll.channel_name())
     assert score1 == default_score
 
+
+def test_can_create_user_commands(db_api, clean_db):
+    troll = db_api.streams.insert_stream(ChannelName("test"), "tester")
+
+    db_api.user_commands.insert_user_command(troll.channel_name(), "tester", "housed", "has been housed n times")
+    cmd = db_api.user_commands.get_user_command(troll.channel_name(), "housed")
+    assert cmd.body == "has been housed n times"
+
+    db_api.user_commands.delete_user_command(troll.channel_name(), "tester", "housed")
+    cmd = db_api.user_commands.get_user_command(troll.channel_name(), "housed")
+    assert cmd == None
