@@ -25,7 +25,6 @@ class BotCommand(ABC):
             return None
         return self.body(message.channel_name, message.username, parsed_data)
 
-
 def buildCommand(name: str, args_parser: Parser, body, help: str) -> BotCommand:
     return BotCommand(name, build_parser(name, args_parser), body, help)
 

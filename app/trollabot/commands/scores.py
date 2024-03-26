@@ -4,9 +4,9 @@ from typing import Optional
 from parsy import Parser, success, seq, alt
 
 from app.trollabot.commands.base.action import Action
-from app.trollabot.commands.base.permission import Permission
-from app.trollabot.commands.base.parsing import  token, int_parser, name_parser
 from app.trollabot.commands.base.bot_command import BotCommand, buildCommand
+from app.trollabot.commands.base.parsing import token, int_parser, name_parser
+from app.trollabot.commands.base.permission import Permission
 from app.trollabot.commands.base.response import RespondWithResponse, Response
 from app.trollabot.database import DB_API
 from app.trollabot.messages import ChannelName
@@ -39,7 +39,6 @@ class SetScoreAction(Action):
         score = db_api.scores.upsert_score(self.channel_name, self.p1_score, self.p2_score)
         return RespondWithResponse(self.channel_name, score.to_irc())
 
-
 @dataclass
 class SetAllScoreAction(Action):
     p1: str
@@ -54,7 +53,6 @@ class SetAllScoreAction(Action):
     def __repr__(self) -> str:
         return f"<SetAllScoreAction(p1='{self.p1}', p1_score={self.p1_score}, " \
                f"p2='{self.p2}', p2_score={self.p2_score})>"
-
 
     def run(self, db_api: DB_API) -> Response:
         print(f"Setting score: {self}")
@@ -82,7 +80,6 @@ class SetAllScoreParseResult(ScoreParseResult):
     p1_score: int
     p2: str
     p2_score: int
-
 
 # Parser for getting the score (empty input)
 get_score_parser: Parser = success(GetScoreParseResult())

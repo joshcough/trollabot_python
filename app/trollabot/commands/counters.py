@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
 from app.trollabot.commands import Response, RespondWithResponse
-from app.trollabot.commands.base.parsing import name_parser
 from app.trollabot.commands.base.action import Action
 from app.trollabot.commands.base.bot_command import BotCommand, buildCommand
+from app.trollabot.commands.base.parsing import name_parser
 from app.trollabot.commands.base.permission import Permission
 from app.trollabot.database import DB_API
 from app.trollabot.messages import ChannelName

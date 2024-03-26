@@ -105,7 +105,6 @@ class UserCommand(Base):
         return (f"<UserCommand(name={self.name}, body='{self.body}', channel={self.channel}, "
                 f"added_by='{self.added_by}', added_at={self.added_at})>")
 
-
 class StreamsDB:
     def __init__(self, session):
         self.session = session
@@ -290,7 +289,8 @@ class UserCommandsDB:
             return self.session.get(UserCommand, {"channel": channel_name.value, "name": name})
 
     def delete_user_command(self, channel_name: ChannelName, username: str, name: str) -> None:
-        user_command_to_delete = self.session.query(UserCommand).filter_by(name=name, channel=channel_name.value).first()
+        user_command_to_delete = self.session.query(UserCommand).filter_by(name=name,
+                                                                           channel=channel_name.value).first()
 
         if user_command_to_delete:
             self.session.delete(user_command_to_delete)

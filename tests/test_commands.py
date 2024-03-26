@@ -1,12 +1,13 @@
 from typing import Optional
 
 from app.trollabot.commands import process_message, Response
-from app.trollabot.commands.scores import score_command, GetScoreAction, SetScoreAction, SetAllScoreAction
-from app.trollabot.commands.quotes import add_quote_command, AddQuoteAction, get_quote_command, GetExactQuoteAction, \
-    del_quote_command, GetRandomQuoteAction, DelQuoteAction
-from app.trollabot.commands.streams import join_stream_command, part_stream_command, JoinStreamAction, PartStreamAction
 from app.trollabot.commands.base.bot_command import BotCommand
 from app.trollabot.commands.base.response import RespondWithResponse, JoinResponse
+from app.trollabot.commands.quotes import add_quote_command, AddQuoteAction, get_quote_command, GetExactQuoteAction, \
+    del_quote_command, GetRandomQuoteAction, DelQuoteAction
+from app.trollabot.commands.scores import score_command, GetScoreAction, SetScoreAction, SetAllScoreAction
+from app.trollabot.commands.streams import join_stream_command, part_stream_command, JoinStreamAction, PartStreamAction
+from app.trollabot.commands.user_commands import parse_user_command_body, TextNode, VarNode
 from app.trollabot.database import Score
 from app.trollabot.messages import ChannelName, Tags, Message
 
@@ -25,6 +26,10 @@ def test_join_stream_parsing():
     assert res == JoinStreamAction(test_stream, test_user, ChannelName("other_stream"))
     res2 = to_action(join_stream_command, "!zzz")
     assert res2 is None
+
+def test_join_stream(db_api):
+    res = process_message(db_api, mk_message("!join other_stream", user="artofthetroll", tags=mod_tags))
+    assert res == JoinResponse(channel_to_join=ChannelName(value='other_stream'))
 
 def test_part_stream_parsing():
     res = to_action(part_stream_command, "!part other_stream")
@@ -95,7 +100,8 @@ def test_help_command(db_api):
 
 def test_commands_command(db_api):
     response = process_message(db_api, mk_message("!commands", user="artofthetroll", tags=mod_tags))
-    assert response == RespondWithResponse(test_stream, "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !count, !addCounter, !deleteCounter, !incCounter, !addc, !delc, !help, !commands")
+    assert response == RespondWithResponse(test_stream,
+                                           "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !count, !addCounter, !deleteCounter, !incCounter, !addc, !delc, !help, !commands")
 
 def test_counter_commands(db_api):
     process_message(db_api, mk_message("!addCounter c", user="artofthetroll", tags=mod_tags))
@@ -110,13 +116,22 @@ def test_counter_commands(db_api):
     assert db_api.counters.get_counter(test_stream, "c") == None
 
 def test_user_commands(db_api):
+    process_message(db_api, mk_message("!join test_stream", user="artofthetroll", tags=mod_tags))
+
     res1 = process_message(db_api, mk_message("!housed", user="artofthetroll", tags=mod_tags))
     assert res1 == None
 
-    res2 = process_message(db_api, mk_message("!addc housed has been housed n times", user="artofthetroll", tags=mod_tags))
+    res2 = process_message(db_api, mk_message("!addc housed has been housed ${housed} times", user="artofthetroll",
+                                              tags=mod_tags))
     cmd = db_api.user_commands.get_user_command(test_stream, "housed")
-    assert res2 == RespondWithResponse(test_stream, msg='housed: has been housed n times')
-    assert cmd.body == "has been housed n times"
+    assert res2 == RespondWithResponse(test_stream, msg='housed: has been housed ${housed} times')
+    assert cmd.body == "has been housed ${housed} times"
 
     res3: Optional[Response] = process_message(db_api, mk_message("!housed", user="artofthetroll", tags=mod_tags))
-    assert res3 == RespondWithResponse(test_stream, "has been housed n times")
+    assert res3 == RespondWithResponse(test_stream, "has been housed 1 times")
+
+def test_user_commands_body_parsing():
+    input_string = "Hello ${user}, your balance is ${balance} dollars."
+    parsed_nodes = parse_user_command_body(input_string)
+    assert parsed_nodes == [TextNode("Hello "), VarNode("user"), TextNode(", your balance is "), VarNode("balance"),
+                            TextNode(" dollars.")]

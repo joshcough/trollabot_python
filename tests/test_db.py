@@ -78,7 +78,6 @@ def test_scores(db_api, clean_db):
     score1 = db_api.scores.get_score(troll.channel_name())
     assert score1 == default_score
 
-
 def test_can_create_user_commands(db_api, clean_db):
     troll = db_api.streams.insert_stream(ChannelName("test"), "tester")
 

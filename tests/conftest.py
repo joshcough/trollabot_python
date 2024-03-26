@@ -2,6 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
+
 from app.trollabot.database import Base, Quote, Stream, DB_API, Counter, Score, UserCommand
 
 @pytest.fixture(scope="session")
@@ -34,4 +35,3 @@ def clean_db(db_api: DB_API):
     db_session.query(Score).delete()
     db_session.query(Stream).delete()
     db_session.commit()
-

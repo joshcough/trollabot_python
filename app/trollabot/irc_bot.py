@@ -1,10 +1,12 @@
 #! /usr/bin/env python
-from app.trollabot.commands import process_message
-from app.trollabot.commands.base.response import Response, RespondWithResponse, JoinResponse, PartResponse, LogErrResponse
-from app.trollabot.database import DB_API
-import irc.client
 import os
 
+import irc.client
+
+from app.trollabot.commands import process_message
+from app.trollabot.commands.base.response import Response, RespondWithResponse, JoinResponse, PartResponse, \
+    LogErrResponse
+from app.trollabot.database import DB_API
 from app.trollabot.messages import message_from_event
 
 class TwitchIRCBot:
@@ -16,6 +18,7 @@ class TwitchIRCBot:
 
         # Bind event handlers to the connection object
         self.connection.add_global_handler("welcome", self.on_connect)
+        self.connection.add_global_handler("join", self.on_join)
         self.connection.add_global_handler("disconnect", self.on_disconnect)
         self.connection.add_global_handler("pubmsg", self.on_pubmsg)
 
@@ -30,11 +33,16 @@ class TwitchIRCBot:
                 connection.join(channel.channel_name().as_irc())
                 connection.privmsg(channel.channel_name().as_irc(), "Hello ladies, I'm back.")
 
+    def on_join(connection, event):
+        print(f"on_join {connection} {event}")
+        # connection.privmsg(channel, "hola")
+
     def on_disconnect(self, connection, event) -> None:
         print(f"on_disconnect {connection} {event}")
         raise SystemExit()
 
     def on_pubmsg(self, connection, event) -> None:
+        print(f"Event: {event}")
         message = message_from_event(event)
         try:
             response: Response = process_message(self.db_api, message)
@@ -47,11 +55,14 @@ class TwitchIRCBot:
 
     def process_response(self, connection, response: Response) -> None:
         if isinstance(response, RespondWithResponse):
+            print(f"Responding with: {response.msg}")
             connection.privmsg(response.channel_name.as_irc(), response.msg)
         elif isinstance(response, JoinResponse):
+            print(f"Joining {response.channel_to_join.as_irc()}")
             connection.join(response.channel_to_join.as_irc())
             connection.privmsg(response.channel_to_join.as_irc(), "Hola!")
         elif isinstance(response, PartResponse):
+            print(f"Parting {response.channel_to_part.as_irc()}")
             connection.part(response.channel_to_part.as_irc())
         elif isinstance(response, LogErrResponse):
             print(f"ERROR: {response.msg}")
@@ -65,9 +76,11 @@ class IrcConfig:
 def setup_connection(irc_config):
     """Create and return the IRC connection."""
     reactor = irc.client.Reactor()
+    print(f"irc oauth: {irc_config.oauth}")
     try:
         connection = reactor.server().connect(
             irc_config.server, irc_config.port, irc_config.nickname, password=f'oauth:{irc_config.oauth}')
+        print("made connection!")
         return reactor, connection
     except irc.client.ServerConnectionError as e:
         print(sys.exc_info()[1])

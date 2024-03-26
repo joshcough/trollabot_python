@@ -1,6 +1,8 @@
+from abc import ABC
 from dataclasses import dataclass
+from typing import List
 
-from parsy import seq, any_char
+from parsy import regex, seq, any_char
 
 from app.trollabot.commands import Response, RespondWithResponse
 from app.trollabot.commands.base.action import Action
@@ -9,6 +11,49 @@ from app.trollabot.commands.base.parsing import name_parser, token
 from app.trollabot.commands.base.permission import Permission
 from app.trollabot.database import DB_API, UserCommand
 from app.trollabot.messages import ChannelName
+
+class ParseNode(ABC):
+    def run(self, db_api: DB_API, channel_name: ChannelName, username: str) -> str:
+        pass
+
+@dataclass
+class TextNode(ParseNode):
+    text: str
+
+    def run(self, db_api: DB_API, channel_name: ChannelName, username: str) -> str:
+        return self.text
+
+@dataclass
+class VarNode(ParseNode):
+    varname: str
+
+    def run(self, db_api: DB_API, channel_name: ChannelName, username: str) -> str:
+        # note: this returns the counter if it already exists
+        # and if it doesn't exist, will create it for us
+        # the first time a user command is run, we will need to create counters.
+        counter = db_api.counters.insert_counter(channel_name, username, self.varname)
+        counter_inced = db_api.counters.inc_counter(channel_name, counter.name)
+        return f"{counter_inced.count}"
+
+# Parser for variable names inside ${...}
+var_name = regex(r"[a-zA-Z_][a-zA-Z0-9_]*")
+
+# Parser for variable interpolation syntax ${varname}
+var_node = seq(regex(r"\$\{"), var_name, regex(r"\}")).combine(lambda _, varname, __: VarNode(varname))
+
+# Parser for plain text
+text_node = regex(r"[^$]+").map(TextNode)
+
+# Parser that can parse both text nodes and variable nodes
+node_parser = (var_node | text_node).many()
+
+def parse_user_command_body(input_string):
+    return node_parser.parse(input_string)
+
+def interpret(nodes: List[ParseNode], db_api: DB_API, channel_name: ChannelName, username: str) -> str:
+    # Iterate over each node, call the run method, and concatenate the results
+    result_strings = [node.run(db_api, channel_name, username) for node in nodes]
+    return ''.join(result_strings)
 
 @dataclass
 class RunUserCommandAction(Action):
@@ -20,8 +65,9 @@ class RunUserCommandAction(Action):
 
     def run(self, db_api: DB_API) -> Response:
         print(f"Running user command: {self.cmd.name}")
-        # TODO run the interpreter here
-        return RespondWithResponse(self.channel_name, f"{self.cmd.body}")
+        nodes = parse_user_command_body(self.cmd.body)
+        res = interpret(nodes, db_api, self.channel_name, self.username)
+        return RespondWithResponse(self.channel_name, res)
 
 @dataclass
 class AddUserCommandAction(Action):
@@ -89,4 +135,4 @@ delete_user_command_command: BotCommand = buildCommand("delc", name_parser, dele
 ###
 # ALL COUNTER COMMANDS
 ###
-user_commands: list[BotCommand] = [ add_user_command_command, delete_user_command_command ]
+user_commands: list[BotCommand] = [add_user_command_command, delete_user_command_command]

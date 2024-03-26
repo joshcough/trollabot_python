@@ -1,8 +1,8 @@
-from dataclasses import dataclass
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 
-from app.trollabot.commands.base.response import Response
 from app.trollabot.commands.base.permission import Permission
+from app.trollabot.commands.base.response import Response
 from app.trollabot.database import DB_API
 from app.trollabot.messages import ChannelName
 
