@@ -14,9 +14,19 @@ from app.trollabot.messages import ChannelName, Tags, Message
 test_stream: ChannelName = ChannelName("test_stream")
 test_user = "test-user"
 mod_tags = Tags([{'key': 'mod', 'value': '1'}])
+not_mod_tags = Tags([{'key': 'mod', 'value': '0'}])
 
-def mk_message(msg: str, user: str = test_user, tags: Tags = Tags([])) -> Message:
+def mk_message(msg: str, user: str = test_user, tags: Tags = not_mod_tags) -> Message:
     return Message(test_stream, user, tags, msg)
+
+def mk_god_message(msg: str) -> Message:
+    return mk_message(msg, user="artofthetroll", tags=mod_tags)
+
+def mk_mod_message(msg: str) -> Message:
+    return mk_message(msg, user="some_mod", tags=mod_tags)
+
+def mk_non_mod_message(msg: str) -> Message:
+    return mk_message(msg, user=test_user, tags=not_mod_tags)
 
 def to_action(command: BotCommand, msg: str) -> object:
     return command.to_action(mk_message(msg))
@@ -28,7 +38,7 @@ def test_join_stream_parsing():
     assert res2 is None
 
 def test_join_stream(db_api):
-    res = process_message(db_api, mk_message("!join other_stream", user="artofthetroll", tags=mod_tags))
+    res = process_message(db_api, mk_god_message("!join other_stream"))
     assert res == JoinResponse(channel_to_join=ChannelName(value='other_stream'))
 
 def test_part_stream_parsing():
@@ -82,52 +92,51 @@ def test_score_parsing():
 
 # NOTE: could test the responses here as well. but for me its enough to see that stuff is in the db.
 def test_score_command(db_api):
-    process_message(db_api, mk_message("!join test_stream", user="artofthetroll", tags=mod_tags))
-    process_message(db_api, mk_message("!score 1 5", tags=mod_tags))
+    process_message(db_api, mk_god_message("!join test_stream"))
+    process_message(db_api, mk_mod_message("!score 1 5"))
     expected_score = Score(channel="test_stream", player1=None, player2=None, player1_score=1, player2_score=5)
     assert expected_score == db_api.scores.get_score(test_stream)
 
 def test_help_command(db_api):
-    response = process_message(db_api, mk_message("!help !addQuote", user="artofthetroll", tags=mod_tags))
+    response = process_message(db_api, mk_non_mod_message("!help !addQuote"))
     assert response == RespondWithResponse(test_stream, "!addQuote <text>")
-    response2 = process_message(db_api, mk_message("!help !help", user="artofthetroll", tags=mod_tags))
+    response2 = process_message(db_api, mk_non_mod_message("!help !help"))
     assert response2 == RespondWithResponse(test_stream, "!help <command_name>. Examples: !help score, or !help !score")
 
-    response = process_message(db_api, mk_message("!help addQuote", user="artofthetroll", tags=mod_tags))
+    response = process_message(db_api, mk_non_mod_message("!help addQuote"))
     assert response == RespondWithResponse(test_stream, "!addQuote <text>")
-    response2 = process_message(db_api, mk_message("!help help", user="artofthetroll", tags=mod_tags))
+    response2 = process_message(db_api, mk_non_mod_message("!help help"))
     assert response2 == RespondWithResponse(test_stream, "!help <command_name>. Examples: !help score, or !help !score")
 
 def test_commands_command(db_api):
-    response = process_message(db_api, mk_message("!commands", user="artofthetroll", tags=mod_tags))
+    response = process_message(db_api, mk_non_mod_message("!commands"))
     expected = "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !count, !addCounter, !deleteCounter, !incCounter, !addc, !delc, !help, !commands"
     assert response == RespondWithResponse(test_stream, expected)
 
 def test_counter_commands(db_api):
-    process_message(db_api, mk_message("!addCounter c", user="artofthetroll", tags=mod_tags))
-    process_message(db_api, mk_message("!incCounter c", user="artofthetroll", tags=mod_tags))
-    process_message(db_api, mk_message("!incCounter c", user="artofthetroll", tags=mod_tags))
+    process_message(db_api, mk_mod_message("!addCounter c"))
+    process_message(db_api, mk_mod_message("!incCounter c"))
+    process_message(db_api, mk_mod_message("!incCounter c"))
     assert db_api.counters.get_counter(test_stream, "c").count == 2
 
-    response = process_message(db_api, mk_message("!count c", user="artofthetroll", tags=mod_tags))
+    response = process_message(db_api, mk_non_mod_message("!count c"))
     assert response == RespondWithResponse(test_stream, "c: 2")
 
-    process_message(db_api, mk_message("!deleteCounter c", user="artofthetroll", tags=mod_tags))
+    process_message(db_api, mk_mod_message("!deleteCounter c"))
     assert db_api.counters.get_counter(test_stream, "c") == None
 
 def test_user_commands(db_api):
-    process_message(db_api, mk_message("!join test_stream", user="artofthetroll", tags=mod_tags))
+    process_message(db_api, mk_god_message("!join test_stream"))
 
-    res1 = process_message(db_api, mk_message("!housed", user="artofthetroll", tags=mod_tags))
+    res1 = process_message(db_api, mk_non_mod_message("!housed"))
     assert res1 == None
 
-    res2 = process_message(db_api, mk_message("!addc housed has been housed ${housed} times", user="artofthetroll",
-                                              tags=mod_tags))
+    res2 = process_message(db_api, mk_mod_message("!addc housed has been housed ${housed} times"))
     cmd = db_api.user_commands.get_user_command(test_stream, "housed")
     assert res2 == RespondWithResponse(test_stream, msg='housed: has been housed ${housed} times')
     assert cmd.body == "has been housed ${housed} times"
 
-    res3: Optional[Response] = process_message(db_api, mk_message("!housed", user="artofthetroll", tags=mod_tags))
+    res3: Optional[Response] = process_message(db_api, mk_non_mod_message("!housed"))
     assert res3 == RespondWithResponse(test_stream, "has been housed 1 times")
 
 def test_user_commands_body_parsing():
