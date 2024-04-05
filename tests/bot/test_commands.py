@@ -1,15 +1,16 @@
 from typing import Optional
 
-from app.trollabot.commands import process_message, Response
-from app.trollabot.commands.base.bot_command import BotCommand
-from app.trollabot.commands.base.response import RespondWithResponse, JoinResponse
-from app.trollabot.commands.quotes import add_quote_command, AddQuoteAction, get_quote_command, GetExactQuoteAction, \
+from bot.trollabot.commands import process_message, Response
+from bot.trollabot.commands.base.bot_command import BotCommand
+from bot.trollabot.commands.base.response import RespondWithResponse, JoinResponse
+from bot.trollabot.commands.quotes import add_quote_command, AddQuoteAction, get_quote_command, GetExactQuoteAction, \
     del_quote_command, GetRandomQuoteAction, DelQuoteAction
-from app.trollabot.commands.scores import score_command, GetScoreAction, SetScoreAction, SetAllScoreAction
-from app.trollabot.commands.streams import join_stream_command, part_stream_command, JoinStreamAction, PartStreamAction
-from app.trollabot.commands.user_commands import parse_user_command_body, TextNode, VarNode
+from bot.trollabot.commands.scores import score_command, GetScoreAction, SetScoreAction, SetAllScoreAction
+from bot.trollabot.commands.streams import join_stream_command, part_stream_command, JoinStreamAction, PartStreamAction
+from bot.trollabot.commands.user_commands import parse_user_command_body, TextNode, VarNode
 from app.trollabot.database.scores import Score
-from app.trollabot.messages import ChannelName, Tags, Message
+from app.trollabot.channelname import ChannelName
+from bot.trollabot.messages import Message, Tags
 
 test_stream: ChannelName = ChannelName("test_stream")
 test_user = "test-user"

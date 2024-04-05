@@ -4,7 +4,7 @@ from sqlalchemy import Column, ForeignKey, String, DateTime, func
 from sqlalchemy.orm import Session
 
 from app.trollabot.database.base import Base
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 class UserCommand(Base):
     __tablename__ = 'user_commands'

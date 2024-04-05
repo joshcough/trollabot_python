@@ -4,7 +4,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, f
 from sqlalchemy.orm import relationship, Session
 
 from app.trollabot.database.base import Base
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 class Quote(Base):
     __tablename__ = 'quotes'

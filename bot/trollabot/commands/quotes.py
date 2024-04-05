@@ -3,13 +3,13 @@ from typing import Optional
 
 from parsy import any_char
 
-from app.trollabot.commands.base.action import Action
-from app.trollabot.commands.base.bot_command import BotCommand, buildCommand
-from app.trollabot.commands.base.parsing import int_parser
-from app.trollabot.commands.base.permission import Permission
-from app.trollabot.commands.base.response import Response, RespondWithResponse
+from bot.trollabot.commands.base.action import Action
+from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
+from bot.trollabot.commands.base.parsing import int_parser
+from bot.trollabot.commands.base.permission import Permission
+from bot.trollabot.commands.base.response import Response, RespondWithResponse
 from app.trollabot.database import DB_API
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 @dataclass
 class QuoteAction(Action):

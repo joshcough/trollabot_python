@@ -4,7 +4,7 @@ from sqlalchemy import Column, String, Boolean, DateTime, func, update
 from sqlalchemy.orm import relationship
 
 from app.trollabot.database.base import Base
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 class Stream(Base):
     __tablename__ = 'streams'

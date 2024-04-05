@@ -3,8 +3,8 @@ from typing import Optional
 from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, func, update
 from sqlalchemy.orm import relationship, Session
 
+from app.trollabot.channelname import ChannelName
 from app.trollabot.database import Base
-from app.trollabot.messages import ChannelName
 
 class Counter(Base):
     __tablename__ = 'counters'

@@ -4,14 +4,14 @@ from typing import List
 
 from parsy import regex, seq, any_char
 
-from app.trollabot.commands import Response, RespondWithResponse
-from app.trollabot.commands.base.action import Action
-from app.trollabot.commands.base.bot_command import BotCommand, buildCommand
-from app.trollabot.commands.base.parsing import name_parser, token
-from app.trollabot.commands.base.permission import Permission
+from bot.trollabot.commands import Response, RespondWithResponse
+from bot.trollabot.commands.base.action import Action
+from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
+from bot.trollabot.commands.base.parsing import name_parser, token
+from bot.trollabot.commands.base.permission import Permission
 from app.trollabot.database import DB_API
 from app.trollabot.database.user_commands import UserCommand
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 class ParseNode(ABC):
     def run(self, db_api: DB_API, channel_name: ChannelName, username: str) -> str:

@@ -3,21 +3,19 @@ from typing import Optional
 
 from parsy import regex, Parser, success, ParseError
 
-from app.trollabot.commands.base.action import Action
-from app.trollabot.commands.base.bot_command import BotCommand, buildCommand
-from app.trollabot.commands.base.parsing import channel_name_parser, int_parser, name_parser, token, \
-    case_insensitive_str
-from app.trollabot.commands.base.permission import Permission, get_permission_level
-from app.trollabot.commands.base.response import Response, JoinResponse, PartResponse, RespondWithResponse
-from app.trollabot.commands.counters import add_counter_command, inc_counter_command, delete_counter_command, \
-    get_count_command, counter_commands
-from app.trollabot.commands.quotes import get_quote_command, add_quote_command, del_quote_command, quote_commands
-from app.trollabot.commands.scores import score_command, score_commands
-from app.trollabot.commands.streams import join_stream_command, part_stream_command, print_streams_command, \
-    stream_commands
-from app.trollabot.commands.user_commands import user_commands, RunUserCommandAction
+from bot.trollabot.commands.base.action import Action
+from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
+from bot.trollabot.commands.base.parsing import name_parser, case_insensitive_str
+from bot.trollabot.commands.base.permission import Permission, get_permission_level
+from bot.trollabot.commands.base.response import Response, RespondWithResponse
+from bot.trollabot.commands.counters import counter_commands
+from bot.trollabot.commands.quotes import quote_commands
+from bot.trollabot.commands.scores import score_commands
+from bot.trollabot.commands.streams import stream_commands
+from bot.trollabot.commands.user_commands import user_commands, RunUserCommandAction
 from app.trollabot.database import DB_API
-from app.trollabot.messages import ChannelName, Message
+from app.trollabot.channelname import ChannelName
+from bot.trollabot.messages import Message
 
 @dataclass
 class HelpAction(Action):

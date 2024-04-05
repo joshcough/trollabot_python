@@ -1,12 +1,5 @@
 from dataclasses import dataclass
 
-@dataclass
-class ChannelName:
-    value: str
-
-    def as_irc(self):
-        return f"#{self.value}"
-
 # tags: [
 #   {'key': 'badge-info', 'value': 'subscriber/78'},
 #   {'key': 'badges', 'value': 'broadcaster/1,subscriber/0,premium/1'},
@@ -26,6 +19,8 @@ class ChannelName:
 #   {'key': 'user-id', 'value': '156467570'},
 #   {'key': 'user-type', 'value': None}
 #   ]
+from app.trollabot.channelname import ChannelName
+
 class Tags:
     def __init__(self, tags):
         for tag in tags:

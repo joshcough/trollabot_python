@@ -1,5 +1,5 @@
 from app.trollabot.database.scores import Score
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 def test_insert_and_get_stream(db_api, clean_db):
     new_stream = db_api.streams.insert_stream(ChannelName("test"), "tester")

@@ -5,9 +5,10 @@ from typing import Callable, Optional
 
 from parsy import Parser as ParsyParser, ParseError, Parser
 
-from app.trollabot.commands import Action
-from app.trollabot.commands.base.parsing import build_parser
-from app.trollabot.messages import ChannelName, Message
+from bot.trollabot.commands import Action
+from bot.trollabot.commands.base.parsing import build_parser
+from app.trollabot.channelname import ChannelName
+from bot.trollabot.messages import Message
 
 @dataclass
 class BotCommand(ABC):

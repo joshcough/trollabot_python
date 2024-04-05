@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 @dataclass
 class Response:

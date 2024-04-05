@@ -1,6 +1,6 @@
 from enum import Enum
 
-from app.trollabot.messages import Message
+from bot.trollabot.messages import Message
 
 class Permission(Enum):
     GOD = (4, "God")

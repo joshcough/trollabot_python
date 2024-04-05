@@ -1,6 +1,6 @@
 from parsy import regex, Parser, digit
 
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 def case_insensitive_str(s):
     return regex(f"(?i){s}")

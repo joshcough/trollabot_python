@@ -2,7 +2,7 @@ from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship, Session
 
 from app.trollabot.database.base import Base
-from app.trollabot.messages import ChannelName
+from app.trollabot.channelname import ChannelName
 
 class Score(Base):
     __tablename__ = 'scores'

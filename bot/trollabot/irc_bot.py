@@ -3,11 +3,11 @@ import os
 
 import irc.client
 
-from app.trollabot.commands import process_message
-from app.trollabot.commands.base.response import Response, RespondWithResponse, JoinResponse, PartResponse, \
+from bot.trollabot.commands import process_message
+from bot.trollabot.commands.base.response import Response, RespondWithResponse, JoinResponse, PartResponse, \
     LogErrResponse
 from app.trollabot.database import DB_API
-from app.trollabot.messages import message_from_event
+from bot.trollabot.messages import message_from_event
 
 class TwitchIRCBot:
     def __init__(self, connection, db_api: DB_API):
