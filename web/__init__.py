@@ -6,11 +6,13 @@ from web import routes
 
 db = SQLAlchemy()
 
-def create_app(conn_str):
+def create_app(conn_str, test_config=None):
     app = Flask(__name__)
     app.config['SQLALCHEMY_DATABASE_URI'] = conn_str
-    db.init_app(app)
+    if test_config:
+        app.config.update(test_config)
 
+    db.init_app(app)
     db_api = DB_API(db.session)
 
     @app.before_request
