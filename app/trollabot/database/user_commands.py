@@ -3,8 +3,8 @@ from typing import Optional
 from sqlalchemy import Column, ForeignKey, String, DateTime, func
 from sqlalchemy.orm import Session
 
-from app.trollabot.database.base import Base
 from app.trollabot.channelname import ChannelName
+from app.trollabot.database.base import Base
 
 class UserCommand(Base):
     __tablename__ = 'user_commands'

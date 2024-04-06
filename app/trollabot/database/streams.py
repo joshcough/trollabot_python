@@ -3,8 +3,8 @@ from typing import Optional
 from sqlalchemy import Column, String, Boolean, DateTime, func, update
 from sqlalchemy.orm import relationship
 
-from app.trollabot.database.base import Base
 from app.trollabot.channelname import ChannelName
+from app.trollabot.database.base import Base
 
 class Stream(Base):
     __tablename__ = 'streams'

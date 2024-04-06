@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from app.trollabot.channelname import ChannelName
+from app.trollabot.database import DB_API
 from bot.trollabot.commands.base.permission import Permission
 from bot.trollabot.commands.base.response import Response
-from app.trollabot.database import DB_API
-from app.trollabot.channelname import ChannelName
 
 @dataclass
 class Action(ABC):

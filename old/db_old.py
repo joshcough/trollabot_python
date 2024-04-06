@@ -1,5 +1,5 @@
-from testcontainers.postgres import PostgresContainer
 import psycopg2
+from testcontainers.postgres import PostgresContainer
 
 def create_streams_table(cursor):
     cursor.execute("""

@@ -1,5 +1,5 @@
-from app.trollabot.database.scores import Score
 from app.trollabot.channelname import ChannelName
+from app.trollabot.database.scores import Score
 
 def test_insert_and_get_stream(db_api, clean_db):
     new_stream = db_api.streams.insert_stream(ChannelName("test"), "tester")
@@ -66,17 +66,8 @@ def test_can_create_and_increment_counters(db_api, clean_db):
 
 def test_scores(db_api, clean_db):
     troll = db_api.streams.insert_stream(ChannelName("test"), "tester")
-
-    default_score = Score(
-        channel="test",
-        player1="player",
-        player2="opponent",
-        player1_score=0,
-        player2_score=0
-    )
-
     score1 = db_api.scores.get_score(troll.channel_name())
-    assert score1 == default_score
+    assert score1 == Score.empty_score(ChannelName("test"))
 
 def test_can_create_user_commands(db_api, clean_db):
     troll = db_api.streams.insert_stream(ChannelName("test"), "tester")

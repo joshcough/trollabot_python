@@ -6,4 +6,14 @@
 {% block content %}
 <h1>Welcome to my Twitch bot website!</h1>
 <p>This is the home page for my awesome Twitch bot. Stay tuned for more features!</p>
+
+
+{% if score %}
+<p>Channel: {{ score.channel }}</p>
+<p>Score: {{ score.player1_name() }} {{ score.player1_score }} - {{ score.player2_score }} {{ score.player2_name()
+    }}</p>
+{% else %}
+<p>No score information available.</p>
+{% endif %}
+
 {% endblock %}

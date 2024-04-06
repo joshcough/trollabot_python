@@ -1,23 +1,15 @@
 import os
 
 from bot.trollabot.trollabot import run_via_external_db, run_via_test_container
-from threading import Thread
-from webapp import app  # Import the Flask app
 
-def run_bot():
-    if os.getenv("ENV") == "local":
-        run_via_test_container()
-    else:
+def main():
+    if os.getenv("ENV") == "prod":
+        print("NOTICE: Running against the prod database!")
         run_via_external_db()
-
-def run_webapp():
-    app.run(debug=False, use_reloader=False)
+    else:
+        print("Running trollabot with a test container")
+        run_via_test_container()
 
 if __name__ == '__main__':
     print("Welcome to Trollabot 2.0")
-
-    # bot_thread = Thread(target=run_bot)
-    webapp_thread = Thread(target=run_webapp)
-
-    # bot_thread.start()
-    webapp_thread.start()
+    main()

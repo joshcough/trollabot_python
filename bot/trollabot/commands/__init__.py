@@ -3,6 +3,8 @@ from typing import Optional
 
 from parsy import regex, Parser, success, ParseError
 
+from app.trollabot.channelname import ChannelName
+from app.trollabot.database import DB_API
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import name_parser, case_insensitive_str
@@ -13,8 +15,6 @@ from bot.trollabot.commands.quotes import quote_commands
 from bot.trollabot.commands.scores import score_commands
 from bot.trollabot.commands.streams import stream_commands
 from bot.trollabot.commands.user_commands import user_commands, RunUserCommandAction
-from app.trollabot.database import DB_API
-from app.trollabot.channelname import ChannelName
 from bot.trollabot.messages import Message
 
 @dataclass

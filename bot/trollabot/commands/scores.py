@@ -3,13 +3,13 @@ from typing import Optional
 
 from parsy import Parser, success, seq, alt
 
+from app.trollabot.channelname import ChannelName
+from app.trollabot.database import DB_API
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import token, int_parser, name_parser
 from bot.trollabot.commands.base.permission import Permission
 from bot.trollabot.commands.base.response import RespondWithResponse, Response
-from app.trollabot.database import DB_API
-from app.trollabot.channelname import ChannelName
 
 @dataclass
 class GetScoreAction(Action):
