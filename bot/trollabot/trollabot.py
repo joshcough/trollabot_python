@@ -39,10 +39,11 @@ def run_bot(conn_str, on_engine_create):
 def run_webapp(conn_str):
     if os.getenv("TROLLABOT_WEBAPP") == "enabled":
         app = create_app(conn_str)
+        port = int(os.environ.get('PORT', 5000))
 
         def go():
             print("RUNNING WEBAPP")
-            app.run(debug=False, host='0.0.0.0', port=5000)
+            app.run(debug=False, host='0.0.0.0', port=port)
 
         webapp_thread = Thread(target=go)
         webapp_thread.daemon = True
