@@ -42,7 +42,7 @@ def run_webapp(conn_str):
 
         def go():
             print("RUNNING WEBAPP")
-            app.run(debug=False, port=5077)
+            app.run(debug=False, host='0.0.0.0', port=5000)
 
         webapp_thread = Thread(target=go)
         webapp_thread.daemon = True
