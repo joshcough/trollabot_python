@@ -95,3 +95,15 @@ class ScoresDB:
             self.session.rollback()
             # Score may have been created in another concurrent session; fetch and return it
             return self.session.query(Score).filter_by(channel=channel_name.value).one()
+
+    def set_player(self, channel_name: ChannelName, player: str) -> Score:
+        score = self.get_or_create_score(channel_name)
+        score.player1 = player
+        self.session.commit()
+        return score
+
+    def set_opponent(self, channel_name: ChannelName, player: str) -> Score:
+        score = self.get_or_create_score(channel_name)
+        score.player2 = player
+        self.session.commit()
+        return score

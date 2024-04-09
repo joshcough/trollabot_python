@@ -7,17 +7,17 @@ test_user = "test-user"
 mod_tags = Tags([{'key': 'mod', 'value': '1'}])
 not_mod_tags = Tags([{'key': 'mod', 'value': '0'}])
 
-def mk_message(msg: str, user: str = test_user, tags: Tags = not_mod_tags) -> Message:
-    return Message(test_stream, user, tags, msg)
+def mk_message(msg: str, stream: ChannelName = test_stream, user: str = test_user, tags: Tags = not_mod_tags) -> Message:
+    return Message(stream, user, tags, msg)
 
-def mk_god_message(msg: str) -> Message:
-    return mk_message(msg, user="artofthetroll", tags=mod_tags)
+def mk_god_message(msg: str, stream: ChannelName = test_stream) -> Message:
+    return mk_message(msg, stream=stream, user="artofthetroll", tags=mod_tags)
 
-def mk_mod_message(msg: str) -> Message:
-    return mk_message(msg, user="some_mod", tags=mod_tags)
+def mk_mod_message(msg: str, stream: ChannelName = test_stream) -> Message:
+    return mk_message(msg, stream=stream, user="some_mod", tags=mod_tags)
 
-def mk_non_mod_message(msg: str) -> Message:
-    return mk_message(msg, user=test_user, tags=not_mod_tags)
+def mk_non_mod_message(msg: str, stream: ChannelName = test_stream) -> Message:
+    return mk_message(msg, stream=stream, user=test_user, tags=not_mod_tags)
 
 def to_action(command: BotCommand, msg: str) -> object:
     return command.to_action(mk_message(msg))

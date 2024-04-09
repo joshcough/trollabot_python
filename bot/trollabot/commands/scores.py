@@ -7,7 +7,7 @@ from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
-from bot.trollabot.commands.base.parsing import token, int_parser, name_parser
+from bot.trollabot.commands.base.parsing import token, int_parser, name_parser, some_text
 from bot.trollabot.commands.base.permission import Permission
 from bot.trollabot.commands.base.response import RespondWithResponse, Response
 
@@ -111,9 +111,52 @@ score_command_help: str = get_score_help + ", " + set_score_only_help + ", " + s
 
 score_command: BotCommand = buildCommand("score", score_command_parser, score_body, score_command_help)
 
+## Set player command
+@dataclass
+class SetPlayerAction(Action):
+    player_name: str
+
+    @property
+    def permission(self) -> Permission:
+        return Permission.ANYONE
+
+    def run(self, db_api: DB_API) -> Response:
+        print(f"Setting score")
+        score = db_api.scores.set_player(self.channel_name, self.player_name)
+        return RespondWithResponse(self.channel_name, score.to_irc())
+
+def set_player(channel_name: ChannelName, username: str, player: str) -> Action:
+    return SetPlayerAction(channel_name, username, player)
+
+set_player_help: str = "!player <text>"
+
+set_player_command: BotCommand = buildCommand("player", some_text, set_player, set_player_help)
+
+# Set opponent command
+@dataclass
+class SetOpponentAction(Action):
+    opponent_name: str
+
+    @property
+    def permission(self) -> Permission:
+        return Permission.ANYONE
+
+    def run(self, db_api: DB_API) -> Response:
+        print(f"Setting score")
+        score = db_api.scores.set_opponent(self.channel_name, self.opponent_name)
+        return RespondWithResponse(self.channel_name, score.to_irc())
+
+def set_opponent(channel_name: ChannelName, username: str, player: str) -> Action:
+    return SetOpponentAction(channel_name, username, player)
+
+set_opponent_help: str = "!opponent <text>"
+
+set_opponent_command: BotCommand = buildCommand("opponent", some_text, set_opponent, set_opponent_help)
+
+
 ###
 # ALL SCORE COMMANDS
 ###
 score_commands: list[BotCommand] = [
-    score_command
+    score_command, set_player_command, set_opponent_command
 ]

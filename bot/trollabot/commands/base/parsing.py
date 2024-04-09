@@ -1,4 +1,4 @@
-from parsy import regex, Parser, digit
+from parsy import regex, Parser, digit, any_char
 
 from app.trollabot.channelname import ChannelName
 
@@ -8,6 +8,7 @@ def case_insensitive_str(s):
 int_parser: Parser = digit.at_least(1).concat().map(int)
 name_parser: Parser = regex("([A-Za-z][A-Za-z0-9_]*)")
 channel_name_parser: Parser = name_parser.map(ChannelName)
+some_text: Parser = any_char.at_least(1).concat()
 
 def token(parser) -> Parser:
     return parser << regex(r"\s+")

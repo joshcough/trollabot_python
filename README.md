@@ -9,9 +9,7 @@
 
 ### Additional commands
 
-* Quotes: search quotes (!searchQuotes)
 * Scores: !player, !opponent
-* User commands: !addUserCommandCommand, !editUserCommandCommand, !deleteUserCommandCommand
 * Other: !buildInfo
 * AOE2 specific: !match !elo
 

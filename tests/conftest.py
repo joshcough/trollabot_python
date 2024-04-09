@@ -38,15 +38,10 @@ def web_client(db_container):
     with app.test_client() as client:
         yield client
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def db_api(db_session) -> DB_API:
     db = DB_API(db_session)
     yield db
-
-@pytest.fixture(scope="function")
-def clean_db(db_api: DB_API):
-    yield
-    db_session = db_api.streams.session
     db_session.query(UserCommand).delete()
     db_session.query(Counter).delete()
     db_session.query(Quote).delete()

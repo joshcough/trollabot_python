@@ -1,14 +1,14 @@
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database.scores import Score
 
-def test_insert_and_get_stream(db_api, clean_db):
+def test_insert_and_get_stream(db_api):
     new_stream = db_api.streams.insert_stream(ChannelName("test"), "tester")
     queried_stream = db_api.streams.get_stream_by_name(ChannelName("test"))
     assert queried_stream is not None
     assert queried_stream.name == new_stream.name
     assert queried_stream.added_by == new_stream.added_by
 
-def test_can_join_stream(db_api, clean_db):
+def test_can_join_stream(db_api):
     new_stream = db_api.streams.insert_stream(ChannelName("test"), "tester")
     queried_stream = db_api.streams.get_stream_by_name(new_stream.channel_name())
     assert not queried_stream.joined
@@ -16,12 +16,12 @@ def test_can_join_stream(db_api, clean_db):
     queried_stream = db_api.streams.get_stream_by_name(new_stream.channel_name())
     assert queried_stream.joined
 
-def test_can_join_stream_that_doesnt_exist(db_api, clean_db):
+def test_can_join_stream_that_doesnt_exist(db_api):
     db_api.streams.join(ChannelName("test"), "tester")
     queried_stream = db_api.streams.get_stream_by_name(ChannelName("test"))
     assert queried_stream.joined
 
-def test_can_create_and_increment_counters(db_api, clean_db):
+def test_can_create_and_increment_counters(db_api):
     troll = db_api.streams.insert_stream(ChannelName("test"), "tester")
 
     db_api.counters.insert_counter(troll.channel_name(), "tester", "housed")
@@ -38,12 +38,12 @@ def test_can_create_and_increment_counters(db_api, clean_db):
 
     assert counterz.count == 2
 
-def test_scores(db_api, clean_db):
+def test_scores(db_api):
     troll = db_api.streams.insert_stream(ChannelName("test"), "tester")
     score1 = db_api.scores.get_score(troll.channel_name())
     assert score1 == Score.empty_score(ChannelName("test"))
 
-def test_can_create_user_commands(db_api, clean_db):
+def test_can_create_user_commands(db_api):
     troll = db_api.streams.insert_stream(ChannelName("test"), "tester")
 
     db_api.user_commands.insert_user_command(troll.channel_name(), "tester", "housed", "has been housed n times")
