@@ -16,4 +16,3 @@ def test_stream(db_api) -> TestStream:
     stream: TestStream = TestStream(channel=next_stream_name(), db_api=db_api)
     stream.join()
     yield stream
-

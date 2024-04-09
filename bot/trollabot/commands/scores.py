@@ -153,7 +153,6 @@ set_opponent_help: str = "!opponent <text>"
 
 set_opponent_command: BotCommand = buildCommand("opponent", some_text, set_opponent, set_opponent_help)
 
-
 ###
 # ALL SCORE COMMANDS
 ###

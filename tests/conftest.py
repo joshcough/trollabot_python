@@ -42,4 +42,3 @@ def db_api(db_session) -> DB_API:
     db_session.query(Score).delete()
     db_session.query(Stream).delete()
     db_session.commit()
-

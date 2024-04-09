@@ -8,4 +8,3 @@ def web_client(db_container):
     app = create_app(conn_str, {'TESTING': True})
     with app.test_client() as client:
         yield client
-
