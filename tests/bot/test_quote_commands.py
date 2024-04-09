@@ -31,5 +31,3 @@ def test_quote_commands(db_api):
 
     res = process_message(db_api, mk_non_mod_message("!quote hi")).msg
     assert res == 'Quote 1: hi there' or res == 'Quote 3: hiya karate chop'
-
-

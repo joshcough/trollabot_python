@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, select, update
 from sqlalchemy.orm import relationship, Session

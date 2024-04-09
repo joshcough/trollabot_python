@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from parsy import any_char, Parser, success
 
@@ -7,7 +6,7 @@ from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
-from bot.trollabot.commands.base.parsing import int_parser, token
+from bot.trollabot.commands.base.parsing import int_parser
 from bot.trollabot.commands.base.permission import Permission
 from bot.trollabot.commands.base.response import Response, RespondWithResponse
 
