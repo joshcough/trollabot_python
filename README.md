@@ -9,7 +9,6 @@
 
 ### Additional commands
 
-* Scores: !player, !opponent
 * Other: !buildInfo
 * AOE2 specific: !match !elo
 

@@ -13,7 +13,7 @@ def web_client(db_container):
 
 stream_count: int = 0
 
-def next_stream_name(prefix: str = "test_stream") -> ChannelName:
+def next_stream_name(prefix: str = "web_test_stream") -> ChannelName:
     global stream_count
     res = f"{prefix}_{stream_count}"
     stream_count = stream_count + 1
