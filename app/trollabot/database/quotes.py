@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime, func, select, update
 from sqlalchemy.orm import relationship, Session
@@ -42,6 +42,14 @@ class QuotesDB:
     def get_random_quote(self, channel_name: ChannelName) -> Optional[Quote]:
         return self.session.query(Quote) \
             .filter(Quote.channel == channel_name.value, Quote.deleted == False) \
+            .order_by(func.random()) \
+            .first()
+
+    def search_quotes(self, channel_name: ChannelName, search: str) -> Optional[Quote]:
+        return self.session.query(Quote) \
+            .filter(Quote.channel == channel_name.value,
+                    Quote.deleted == False,
+                    Quote.text.like("%{}%".format(search))) \
             .order_by(func.random()) \
             .first()
 

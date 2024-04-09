@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from parsy import any_char
+from parsy import any_char, Parser, success
 
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
-from bot.trollabot.commands.base.parsing import int_parser
+from bot.trollabot.commands.base.parsing import int_parser, token
 from bot.trollabot.commands.base.permission import Permission
 from bot.trollabot.commands.base.response import Response, RespondWithResponse
 
@@ -42,6 +42,20 @@ class GetRandomQuoteAction(QuoteAction):
                                    f"Quote {quote.qid}: {quote.text}") if quote is not None else None
 
 @dataclass
+class SearchQuotesAction(QuoteAction):
+    search_str: str
+
+    @property
+    def permission(self) -> Permission:
+        return Permission.ANYONE
+
+    def run(self, db_api: DB_API) -> Response:
+        print(f"Searching quotes for {self.search_str}")
+        quote = db_api.quotes.search_quotes(self.channel_name, self.search_str)
+        return RespondWithResponse(self.channel_name,
+                                   f"Quote {quote.qid}: {quote.text}") if quote is not None else None
+
+@dataclass
 class AddQuoteAction(QuoteAction):
     text: str
 
@@ -70,15 +84,45 @@ class DelQuoteAction(QuoteAction):
 ###
 # GET QUOTE CODE
 ###
-def get_quote(channel_name: ChannelName, username: str, qid: Optional[int]) -> Action:
-    if qid:
-        return GetExactQuoteAction(channel_name, username, qid)
-    else:
+class GetQuoteParseResult:
+    pass
+
+class GetRandomQuoteParseResult(GetQuoteParseResult):
+    pass
+
+@dataclass
+class GetQuoteByIdParseResult(GetQuoteParseResult):
+    qid: int
+
+    def __repr__(self) -> str:
+        return f"<GetQuoteByIdParseResult(qid={self.qid})>"
+
+@dataclass
+class SearchQuotesParseResult(GetQuoteParseResult):
+    search_str: str
+
+    def __repr__(self) -> str:
+        return f"<SearchQuoteParseResult(qid='{self.search_str}')>"
+
+get_random_quote_parser: Parser = success(GetRandomQuoteParseResult())
+
+get_quote_by_id_parser: Parser = int_parser.map(lambda x: GetQuoteByIdParseResult(x))
+
+search_quotes_parser: Parser = any_char.at_least(1).concat().map(lambda x: SearchQuotesParseResult(x))
+
+get_quote_parser = get_quote_by_id_parser | search_quotes_parser | get_random_quote_parser
+
+def get_quote(channel_name: ChannelName, username: str, res: GetQuoteParseResult) -> Action:
+    if isinstance(res, GetRandomQuoteParseResult):
         return GetRandomQuoteAction(channel_name, username)
+    elif isinstance(res, GetQuoteByIdParseResult):
+        return GetExactQuoteAction(channel_name, username, res.qid)
+    elif isinstance(res, SearchQuotesParseResult):
+        return SearchQuotesAction(channel_name, username, res.search_str)
 
-get_quote_help = "For a random quote: !quote or for a specific quote: !quote <number>"
+get_quote_help = "For a random quote: !quote. For a specific quote: !quote <number>. To search quotes: !quote <text>"
 
-get_quote_command: BotCommand = buildCommand("quote", int_parser.optional(), get_quote, get_quote_help)
+get_quote_command: BotCommand = buildCommand("quote", get_quote_parser, get_quote, get_quote_help)
 
 ###
 # ADD QUOTE CODE

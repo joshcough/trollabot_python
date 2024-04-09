@@ -3,34 +3,12 @@ from typing import Optional
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database.scores import Score
 from bot.trollabot.commands import process_message, Response
-from bot.trollabot.commands.base.bot_command import BotCommand
 from bot.trollabot.commands.base.response import RespondWithResponse, JoinResponse
-from bot.trollabot.commands.quotes import add_quote_command, AddQuoteAction, get_quote_command, GetExactQuoteAction, \
-    del_quote_command, GetRandomQuoteAction, DelQuoteAction
+from bot.trollabot.commands.quotes import del_quote_command, DelQuoteAction
 from bot.trollabot.commands.scores import score_command, GetScoreAction, SetScoreAction, SetAllScoreAction
 from bot.trollabot.commands.streams import join_stream_command, part_stream_command, JoinStreamAction, PartStreamAction
 from bot.trollabot.commands.user_commands import parse_user_command_body, TextNode, VarNode
-from bot.trollabot.messages import Message, Tags
-
-test_stream: ChannelName = ChannelName("test_stream")
-test_user = "test-user"
-mod_tags = Tags([{'key': 'mod', 'value': '1'}])
-not_mod_tags = Tags([{'key': 'mod', 'value': '0'}])
-
-def mk_message(msg: str, user: str = test_user, tags: Tags = not_mod_tags) -> Message:
-    return Message(test_stream, user, tags, msg)
-
-def mk_god_message(msg: str) -> Message:
-    return mk_message(msg, user="artofthetroll", tags=mod_tags)
-
-def mk_mod_message(msg: str) -> Message:
-    return mk_message(msg, user="some_mod", tags=mod_tags)
-
-def mk_non_mod_message(msg: str) -> Message:
-    return mk_message(msg, user=test_user, tags=not_mod_tags)
-
-def to_action(command: BotCommand, msg: str) -> object:
-    return command.to_action(mk_message(msg))
+from tests.bot.helpers import to_action, test_stream, test_user, mk_god_message, mk_non_mod_message, mk_mod_message
 
 def test_join_stream_parsing():
     res = to_action(join_stream_command, "!join other_stream")
@@ -46,29 +24,6 @@ def test_part_stream_parsing():
     res = to_action(part_stream_command, "!part other_stream")
     assert res == PartStreamAction(test_stream, test_user, ChannelName("other_stream"))
     res2 = to_action(part_stream_command, "!zzz")
-    assert res2 is None
-
-def test_add_quote_parsing():
-    res = to_action(add_quote_command, "!addQuote hi")
-    assert res == AddQuoteAction(test_stream, test_user, "hi")
-    res2 = to_action(add_quote_command, "!zzz")
-    assert res2 is None
-
-def test_get_quote_parsing():
-    res = to_action(get_quote_command, "!quote 5")
-    assert res == GetExactQuoteAction(test_stream, test_user, 5)
-
-    res2 = to_action(get_quote_command, "!quote")
-    assert res2 == GetRandomQuoteAction(test_stream, test_user)
-
-    res3 = to_action(get_quote_command, "!quotezzz")
-    assert res3 is None
-
-def test_delete_quote_parsing():
-    res = to_action(del_quote_command, "!delQuote 5")
-    assert res == DelQuoteAction(test_stream, test_user, 5)
-
-    res2 = to_action(get_quote_command, "!quotezzz")
     assert res2 is None
 
 def test_commands_work_case_insensitive():
