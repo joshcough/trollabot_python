@@ -4,6 +4,7 @@ import signal
 import sys
 from threading import Thread
 
+from flask import Flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from testcontainers.postgres import PostgresContainer
@@ -16,8 +17,8 @@ from web import create_app
 def run_with_pg_connection_string(conn_str, on_engine_create) -> None:
     if conn_str.startswith("postgres://"):
         conn_str = conn_str.replace("postgres://", "postgresql://", 1)
-    run_webapp(conn_str)
     run_bot(conn_str, on_engine_create)
+    run_webapp(conn_str)
 
 def run_bot(conn_str, on_engine_create):
     print("running bot")
@@ -31,23 +32,24 @@ def run_bot(conn_str, on_engine_create):
     make_shutdown_handler(reactor, db_session)
 
     _: TwitchIRCBot = TwitchIRCBot(connection, db_api)
-    reactor.process_forever()
 
-    db_session.close()
-    Base.metadata.drop_all(bind=engine)
+    def go():
+        print("RUNNING IRC BOT")
+        reactor.process_forever()
+        db_session.close()
+        Base.metadata.drop_all(bind=engine)
+
+    bot_thread: Thread = Thread(target=go)
+    bot_thread.daemon = True
+    bot_thread.start()
 
 def run_webapp(conn_str):
     if os.getenv("TROLLABOT_WEBAPP") == "enabled":
-        app = create_app(conn_str)
-        port = int(os.environ.get('PORT', 5000))
-
-        def go():
-            print("RUNNING WEBAPP")
-            app.run(debug=False, host='0.0.0.0', port=port)
-
-        webapp_thread = Thread(target=go)
-        webapp_thread.daemon = True
-        webapp_thread.start()
+        app: Flask = create_app(conn_str)
+        port: int = int(os.environ.get('PORT', 5000))
+        debug_mode: bool = os.getenv("ENV") != "prod"
+        print("RUNNING WEBAPP")
+        app.run(debug=debug_mode, host='0.0.0.0', port=port)
 
 def run_via_test_container() -> None:
     with PostgresContainer("postgres:latest") as postgres:

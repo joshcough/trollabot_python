@@ -7,65 +7,49 @@
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-    /* Dark theme adjustments */
-    body, .navbar, .footer {
-        background-color: #121212 !important; /* Dark background */
-        color: #e4e4e4 !important; /* Light text */
+    body {
+        background-color: #282c34; /* Dark gray background */
+        color: #CCCCCC; /* Lighter text */
     }
 
     a, .navbar-brand, .nav-link {
-        color: #9A9A9A !important; /* Lighter text for links */
+        color: #ABB2BF; /* Slightly lighter text for links for better readability */
     }
 
     a:hover, .navbar-brand:hover, .nav-link:hover {
-        color: #ffffff !important; /* White text on hover */
+        color: #E6E6E6; /* Brighter color on hover */
     }
 
+    /* Table styles */
     .table {
-        color: #cccccc;
+        background-color: #3E4451; /* Lighter than body background for contrast */
+        color: #FFF; /* White text for readability */
     }
 
     .table th, .table td {
-        border-color: #323232 !important; /* Darker borders for table cells */
+        border-color: #565A69; /* Darker borders for table cells for subtle contrast */
     }
 
     .table-hover tbody tr:hover {
-        background-color: #2a2a2a !important; /* Hover color for table rows */
+        background-color: #4E5360; /* Hover color for table rows */
+    }
+
+    /* Navbar adjustments for better contrast */
+    .navbar {
+        background-color: #21252B; /* Dark but slightly lighter than body for distinction */
+        border-bottom: 2px solid #3E4451; /* Border for separation from the content */
     }
 
     .form-control {
-        background-color: #333333;
-        border-color: #4e4e4e;
-        color: #e4e4e4;
+        background-color: #3E4451;
+        border-color: #565A69;
+        color: #FFF;
     }
 
     .form-control:focus {
-        background-color: #333333;
-        border-color: #555555;
-        color: #e4e4e4;
+        border-color: #ABB2BF;
+        color: #FFF;
     }
-
-    /* Custom table header style adjusted for dark theme */
-    thead th {
-        background-color: #007bff;
-        color: white;
-    }
-
-    /* Navbar adjustments */
-    .navbar {
-        background-color: #333; /* Slightly lighter than pure black for contrast */
-        border-bottom: 2px solid #555; /* Subtle border for visual separation */
-    }
-
-    .navbar-brand, .navbar-nav .nav-link {
-        font-size: 1.1rem; /* Increase the font size */
-        color: #ddd !important; /* Ensure text color is light for contrast */
-    }
-
-    .navbar-brand:hover, .navbar-nav .nav-link:hover {
-        color: #ffffff !important; /* Brighter color on hover for better visibility */
-    }
-
     </style>
 </head>
 <body>
