@@ -6,10 +6,71 @@
     <title>{% block title %}My App{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+    /* Dark theme adjustments */
+    body, .navbar, .footer {
+        background-color: #121212 !important; /* Dark background */
+        color: #e4e4e4 !important; /* Light text */
+    }
+
+    a, .navbar-brand, .nav-link {
+        color: #9A9A9A !important; /* Lighter text for links */
+    }
+
+    a:hover, .navbar-brand:hover, .nav-link:hover {
+        color: #ffffff !important; /* White text on hover */
+    }
+
+    .table {
+        color: #cccccc;
+    }
+
+    .table th, .table td {
+        border-color: #323232 !important; /* Darker borders for table cells */
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #2a2a2a !important; /* Hover color for table rows */
+    }
+
+    .form-control {
+        background-color: #333333;
+        border-color: #4e4e4e;
+        color: #e4e4e4;
+    }
+
+    .form-control:focus {
+        background-color: #333333;
+        border-color: #555555;
+        color: #e4e4e4;
+    }
+
+    /* Custom table header style adjusted for dark theme */
+    thead th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    /* Navbar adjustments */
+    .navbar {
+        background-color: #333; /* Slightly lighter than pure black for contrast */
+        border-bottom: 2px solid #555; /* Subtle border for visual separation */
+    }
+
+    .navbar-brand, .navbar-nav .nav-link {
+        font-size: 1.1rem; /* Increase the font size */
+        color: #ddd !important; /* Ensure text color is light for contrast */
+    }
+
+    .navbar-brand:hover, .navbar-nav .nav-link:hover {
+        color: #ffffff !important; /* Brighter color on hover for better visibility */
+    }
+
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Trollabot</a>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/">Trollabot</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
             aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -17,9 +78,12 @@
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
             <li class="nav-item active">
-                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
             </li>
-            <!-- Add more navigation items here -->
+            <!-- Example: Link to your commands page -->
+            <li class="nav-item">
+                <a class="nav-link" href="/commands">Commands</a>
+            </li>
         </ul>
     </div>
 </nav>

@@ -20,6 +20,6 @@ def create_app(conn_str, test_config=None):
         # Make db_api accessible in the global context of a request
         g.db_api = db_api
 
-    app.register_blueprint(routes.bp)
+    app.register_blueprint(routes.app)
 
     return app
