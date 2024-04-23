@@ -38,7 +38,7 @@ def run_bot(conn_str, on_engine_create):
                 db_api = DB_API(db_session)
                 db_api.streams.join(ChannelName("artofthetroll"), "artofthetroll")
                 reactor, connection = setup_connection(irc_config=IrcConfig())
-                make_shutdown_handler(reactor, db_session)
+                # make_shutdown_handler(reactor, db_session)
 
                 _: TwitchIRCBot = TwitchIRCBot(connection, db_api)
                 reactor.process_forever()
@@ -70,16 +70,16 @@ def run_via_test_container() -> None:
 
 def run_via_external_db() -> None:
     run_with_pg_connection_string(os.getenv('DATABASE_URL'), lambda engine: None)
-
-def make_shutdown_handler(reactor, db_session):
-    def shutdown_handler(signum, frame):
-        logger.info('Shutting down gracefully...')
-        db_session.close()
-        # Optionally, also stop the reactor if you have access to it here
-        logger.info('Calling stop on reactor')
-        reactor.disconnect_all("Goodnight, cruel world.")
-        logger.info('Calling exit')
-        sys.exit(0)
-
-    # signal.signal(signal.SIGTERM, shutdown_handler)
-    signal.signal(signal.SIGINT, shutdown_handler)
+#
+# def make_shutdown_handler(reactor, db_session):
+#     def shutdown_handler(signum, frame):
+#         logger.info('Shutting down gracefully...')
+#         db_session.close()
+#         # Optionally, also stop the reactor if you have access to it here
+#         logger.info('Calling stop on reactor')
+#         reactor.disconnect_all("Goodnight, cruel world.")
+#         logger.info('Calling exit')
+#         sys.exit(0)
+#
+#     # signal.signal(signal.SIGTERM, shutdown_handler)
+#     signal.signal(signal.SIGINT, shutdown_handler)
