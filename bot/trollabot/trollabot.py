@@ -50,7 +50,6 @@ def run_bot(conn_str, on_engine_create):
             finally:
                 logger.info("Cleaning up bot resources...")
                 db_session.close()
-                Base.metadata.drop_all(bind=engine)
 
     bot_thread: Thread = Thread(target=monitored_bot)
     bot_thread.daemon = True
@@ -84,5 +83,3 @@ def make_shutdown_handler(reactor, db_session):
 
     signal.signal(signal.SIGTERM, shutdown_handler)
     signal.signal(signal.SIGINT, shutdown_handler)
-
-# Created papertrail-angular-02229 as PAPERTRAIL_API_TOKEN
