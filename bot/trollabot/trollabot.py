@@ -81,5 +81,5 @@ def make_shutdown_handler(reactor, db_session):
         logger.info('Calling exit')
         sys.exit(0)
 
-    signal.signal(signal.SIGTERM, shutdown_handler)
+    # signal.signal(signal.SIGTERM, shutdown_handler)
     signal.signal(signal.SIGINT, shutdown_handler)
