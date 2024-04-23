@@ -7,11 +7,14 @@ from parsy import regex, seq, any_char
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
 from app.trollabot.database.user_commands import UserCommand
+from app.trollabot.loggo import get_logger
 from bot.trollabot.commands import Response, RespondWithResponse
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import name_parser, token
 from bot.trollabot.commands.base.permission import Permission
+
+logger = get_logger(__name__)
 
 class ParseNode(ABC):
     def run(self, db_api: DB_API, channel_name: ChannelName, username: str) -> str:
@@ -65,7 +68,7 @@ class RunUserCommandAction(Action):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Running user command: {self.cmd.name}")
+        logger.info(f"Running user command: {self.cmd.name}")
         nodes = parse_user_command_body(self.cmd.body)
         res = interpret(nodes, db_api, self.channel_name, self.username)
         return RespondWithResponse(self.channel_name, res)
@@ -80,7 +83,7 @@ class AddUserCommandAction(Action):
         return Permission.MOD
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Adding user_command {self.name}")
+        logger.info(f"Adding user_command {self.name}")
         user_command = db_api.user_commands.insert_user_command(self.channel_name, self.username, self.name, self.body)
         # TODO: need to interpret the command here.
         return RespondWithResponse(self.channel_name, f"{self.name}: {user_command.body}")
@@ -94,7 +97,7 @@ class DeleteUserCommandAction(Action):
         return Permission.MOD
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Deleting user_command {self.name}")
+        logger.info(f"Deleting user_command {self.name}")
         db_api.user_commands.delete_user_command(self.channel_name, self.username, self.name)
         return RespondWithResponse(self.channel_name, f"Deleted user_command: {self.name}")
 

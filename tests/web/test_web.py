@@ -1,4 +1,3 @@
-
 def test_home_page(web_client, db_api):
     """Test the home page route."""
     response = web_client.get('/')

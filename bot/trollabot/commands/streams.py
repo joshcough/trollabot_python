@@ -4,11 +4,14 @@ from parsy import success
 
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
+from app.trollabot.loggo import get_logger
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import channel_name_parser
 from bot.trollabot.commands.base.permission import Permission
 from bot.trollabot.commands.base.response import RespondWithResponse, Response, JoinResponse, PartResponse
+
+logger = get_logger(__name__)
 
 @dataclass
 class StreamsAction(Action):
@@ -23,7 +26,7 @@ class JoinStreamAction(StreamsAction):
         return Permission.GOD
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Joining {self.channel_to_join}")
+        logger.debug(f"Joining {self.channel_to_join}")
         db_api.streams.join(self.channel_to_join, self.username)
         return JoinResponse(self.channel_to_join)
 
@@ -36,7 +39,7 @@ class PartStreamAction(StreamsAction):
         return Permission.STREAMER
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Parting {self.channel_to_part}")
+        logger.debug(f"Parting {self.channel_to_part}")
         db_api.streams.part(self.channel_to_part)
         return PartResponse(self.channel_to_part)
 
@@ -47,7 +50,7 @@ class PrintStreamsAction(StreamsAction):
         return Permission.GOD
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Getting streams")
+        logger.debug(f"Getting streams")
         streams = db_api.streams.get_joined_streams()
         return RespondWithResponse(self.channel_name, ", ".join(list(map(lambda x: x.name, streams))))
 

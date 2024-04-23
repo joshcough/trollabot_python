@@ -5,11 +5,14 @@ from parsy import Parser, success, seq, alt
 
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
+from app.trollabot.loggo import get_logger
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import token, int_parser, name_parser, some_text
 from bot.trollabot.commands.base.permission import Permission
 from bot.trollabot.commands.base.response import RespondWithResponse, Response
+
+logger = get_logger(__name__)
 
 @dataclass
 class GetScoreAction(Action):
@@ -18,7 +21,7 @@ class GetScoreAction(Action):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Getting score")
+        logger.debug(f"Getting score")
         score = db_api.scores.get_score(self.channel_name)
         return RespondWithResponse(self.channel_name, score.to_irc())
 
@@ -35,7 +38,7 @@ class SetScoreAction(Action):
         return f"<SetScoreAction(p1_score={self.p1_score}, p2_score={self.p2_score})>"
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Setting score: {self}")
+        logger.debug(f"Setting score: {self}")
         score = db_api.scores.upsert_score(self.channel_name, self.p1_score, self.p2_score)
         return RespondWithResponse(self.channel_name, score.to_irc())
 
@@ -55,7 +58,7 @@ class SetAllScoreAction(Action):
                f"p2='{self.p2}', p2_score={self.p2_score})>"
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Setting score: {self}")
+        logger.debug(f"Setting score: {self}")
         score = db_api.scores.upsert_score_all(self.channel_name, self.p1, self.p1_score,
                                                self.p2, self.p2_score)
         return RespondWithResponse(self.channel_name, score.to_irc())
@@ -121,7 +124,7 @@ class SetPlayerAction(Action):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Setting score")
+        logger.debug(f"Setting score")
         score = db_api.scores.set_player(self.channel_name, self.player_name)
         return RespondWithResponse(self.channel_name, score.to_irc())
 
@@ -142,7 +145,7 @@ class SetOpponentAction(Action):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Setting score")
+        logger.debug(f"Setting score")
         score = db_api.scores.set_opponent(self.channel_name, self.opponent_name)
         return RespondWithResponse(self.channel_name, score.to_irc())
 

@@ -5,6 +5,7 @@ from parsy import regex, Parser, success, ParseError
 
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
+from app.trollabot.loggo import get_logger
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import name_parser, case_insensitive_str
@@ -17,6 +18,8 @@ from bot.trollabot.commands.streams import stream_commands
 from bot.trollabot.commands.user_commands import user_commands, RunUserCommandAction
 from bot.trollabot.messages import Message
 
+logger = get_logger(__name__)
+
 @dataclass
 class HelpAction(Action):
     command_name: str
@@ -26,7 +29,7 @@ class HelpAction(Action):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Getting help for: {self.command_name}")
+        logger.debug(f"Getting help for: {self.command_name}")
         cmd: BotCommand = commands_dict[self.command_name]
         if cmd is not None:
             return RespondWithResponse(self.channel_name, cmd.help)
@@ -40,7 +43,7 @@ class GetCommandsAction(Action):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print("Getting commands")
+        logger.debug("Getting commands")
         return RespondWithResponse(self.channel_name, ", ".join(f"!{item}" for item in list(commands_dict.keys())))
 
 ###
@@ -108,7 +111,7 @@ def find_action(db_api: DB_API, msg: Message) -> Optional[Action]:
 def process_message(db_api: DB_API, msg: Message) -> Optional[Response]:
     action = find_action(db_api, msg)
     if action is not None:
-        print(f"Asked to run action {action}")
+        logger.info(f"Asked to run action {action}")
         if get_permission_level(msg) >= action.permission:
             return action.run(db_api)
         else:

@@ -4,11 +4,14 @@ from parsy import any_char, Parser, success
 
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
+from app.trollabot.loggo import get_logger
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import int_parser
 from bot.trollabot.commands.base.permission import Permission
 from bot.trollabot.commands.base.response import Response, RespondWithResponse
+
+logger = get_logger(__name__)
 
 @dataclass
 class QuoteAction(Action):
@@ -23,7 +26,7 @@ class GetExactQuoteAction(QuoteAction):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Getting exact quote {self.qid}")
+        logger.debug(f"Getting exact quote {self.qid}")
         quote = db_api.quotes.get_quote(self.channel_name, self.qid)
         return RespondWithResponse(self.channel_name,
                                    f"Quote {quote.qid}: {quote.text}") if quote is not None else None
@@ -35,7 +38,7 @@ class GetRandomQuoteAction(QuoteAction):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print("Getting random quote")
+        logger.debug("Getting random quote")
         quote = db_api.quotes.get_random_quote(self.channel_name)
         return RespondWithResponse(self.channel_name,
                                    f"Quote {quote.qid}: {quote.text}") if quote is not None else None
@@ -49,7 +52,7 @@ class SearchQuotesAction(QuoteAction):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Searching quotes for {self.search_str}")
+        logger.debug(f"Searching quotes for {self.search_str}")
         quote = db_api.quotes.search_quotes(self.channel_name, self.search_str)
         return RespondWithResponse(self.channel_name,
                                    f"Quote {quote.qid}: {quote.text}") if quote is not None else None
@@ -63,7 +66,7 @@ class AddQuoteAction(QuoteAction):
         return Permission.MOD
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Adding quote: {self.text}")
+        logger.debug(f"Adding quote: {self.text}")
         quote = db_api.quotes.insert_quote(self.channel_name, self.username, self.text)
         return RespondWithResponse(self.channel_name, f"Added quote {quote.qid}: {quote.text}")
 
@@ -76,7 +79,7 @@ class DelQuoteAction(QuoteAction):
         return Permission.MOD
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Deleting quote {self.qid}")
+        logger.debug(f"Deleting quote {self.qid}")
         db_api.quotes.delete_quote(self.channel_name, self.qid, self.username)
         return RespondWithResponse(self.channel_name, f"Deleted quote {self.qid}")
 

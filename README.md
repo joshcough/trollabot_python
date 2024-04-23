@@ -1,4 +1,8 @@
-# trollabot_python
+# trollabot
+
+## For more info see
+
+http://www.trollabot.com/
 
 ## TODO
 

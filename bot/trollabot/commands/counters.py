@@ -2,11 +2,14 @@ from dataclasses import dataclass
 
 from app.trollabot.channelname import ChannelName
 from app.trollabot.database import DB_API
+from app.trollabot.loggo import get_logger
 from bot.trollabot.commands import Response, RespondWithResponse
 from bot.trollabot.commands.base.action import Action
 from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import name_parser
 from bot.trollabot.commands.base.permission import Permission
+
+logger = get_logger(__name__)
 
 @dataclass
 class GetCountAction(Action):
@@ -17,7 +20,7 @@ class GetCountAction(Action):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Getting count for {self.name}")
+        logger.debug(f"Getting count for {self.name}")
         counter = db_api.counters.get_counter(self.channel_name, self.name)
         if counter:
             return RespondWithResponse(self.channel_name, f"{self.name}: {counter.count}")
@@ -33,7 +36,7 @@ class AddCounterAction(Action):
         return Permission.MOD
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Adding counter {self.name}")
+        logger.debug(f"Adding counter {self.name}")
         counter = db_api.counters.insert_counter(self.channel_name, self.username, self.name)
         return RespondWithResponse(self.channel_name, f"{self.name}: {counter.count}")
 
@@ -46,7 +49,7 @@ class DeleteCounterAction(Action):
         return Permission.MOD
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Deleting counter {self.name}")
+        logger.debug(f"Deleting counter {self.name}")
         db_api.counters.delete_counter(self.channel_name, self.username, self.name)
         return RespondWithResponse(self.channel_name, f"Deleted counter: {self.name}")
 
@@ -59,7 +62,7 @@ class IncCounterAction(Action):
         return Permission.ANYONE
 
     def run(self, db_api: DB_API) -> Response:
-        print(f"Incrementing counter {self.name}")
+        logger.debug(f"Incrementing counter {self.name}")
         counter = db_api.counters.inc_counter(self.channel_name, self.name)
         if counter:
             return RespondWithResponse(self.channel_name, f"{self.name}: {counter.count}")

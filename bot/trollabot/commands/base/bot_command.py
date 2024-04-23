@@ -6,9 +6,12 @@ from typing import Callable, Optional
 from parsy import Parser as ParsyParser, ParseError, Parser
 
 from app.trollabot.channelname import ChannelName
+from app.trollabot.loggo import get_logger
 from bot.trollabot.commands import Action
 from bot.trollabot.commands.base.parsing import build_parser
 from bot.trollabot.messages import Message
+
+logger = get_logger(__name__)
 
 @dataclass
 class BotCommand(ABC):
@@ -20,7 +23,7 @@ class BotCommand(ABC):
     def to_action(self, message: Message) -> Optional[Action]:
         try:
             parsed_data = self.parser.parse(message.text)
-            print(f"Message: {message.text}", "Parsed result:", parsed_data)
+            logger.debug(f"Message: {message.text}, Parsed result: {parsed_data}")
         except ParseError as e:
             # print(f"parse error: {e}")
             return None
