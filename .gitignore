@@ -1,2 +1,14 @@
 .idea
 venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.DS_Store
+*.log
+*.dump
+.env
+.pytest_cache/
+*.swp
+*.swo
+*~

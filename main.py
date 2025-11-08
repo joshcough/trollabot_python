@@ -11,7 +11,9 @@ logger = get_logger(__name__)
 
 def main():
     """Start the Trollabot with either production or test database."""
-    if os.getenv("ENV") == "prod":
+    # Check if we should use an external database
+    # Uses DATABASE_URL if set, or ENV=prod for backwards compatibility
+    if os.getenv("DATABASE_URL") or os.getenv("ENV") == "prod":
         logger.info("Running in PRODUCTION mode with external database")
         run_via_external_db()
     else:

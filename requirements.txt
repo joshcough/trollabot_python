@@ -6,8 +6,6 @@ compynator==0.1.2
 deprecation==2.1.0
 docker==7.0.0
 exceptiongroup==1.2.1
-Flask==3.0.3
-gunicorn==22.0.0
 idna==3.7
 inflect==7.2.0
 iniconfig==2.0.0
@@ -29,7 +27,6 @@ pytest==8.1.1
 pytz==2024.1
 requests==2.31.0
 SQLAlchemy==2.0.29
-Flask-SQLAlchemy==3.1.1
 tempora==5.5.1
 testcontainers==4.4.0
 tomli==2.0.1
