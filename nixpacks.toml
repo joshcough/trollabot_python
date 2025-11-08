@@ -1,0 +1,8 @@
+[phases.setup]
+
+[phases.install]
+
+[phases.build]
+
+[start]
+cmd = "python main.py"
