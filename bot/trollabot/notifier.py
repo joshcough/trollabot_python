@@ -1,9 +1,6 @@
 import os
-import smtplib
 import traceback
 from datetime import datetime
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 from typing import Optional
 
 import requests
@@ -14,52 +11,41 @@ logger = get_logger(__name__)
 
 
 class Notifier:
-    """Sends notifications when the bot crashes or encounters errors."""
+    """Sends Discord notifications when the bot crashes or encounters errors."""
 
     def __init__(self):
         self.discord_webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
-        self.email_enabled = all([
-            os.getenv('SMTP_HOST'),
-            os.getenv('SMTP_PORT'),
-            os.getenv('SMTP_USERNAME'),
-            os.getenv('SMTP_PASSWORD'),
-            os.getenv('NOTIFICATION_EMAIL')
-        ])
 
         if self.discord_webhook_url:
             logger.info("Discord notifications enabled")
-        if self.email_enabled:
-            logger.info("Email notifications enabled")
-
-        if not self.discord_webhook_url and not self.email_enabled:
-            logger.warning("No notification methods configured")
+        else:
+            logger.warning("DISCORD_WEBHOOK_URL not configured - errors will only be logged")
 
     def notify_error(self, error: Exception, context: str = "Bot error"):
-        """Send notification about an error via all configured channels."""
+        """Send notification about an error to Discord."""
+        if not self.discord_webhook_url:
+            return
+
         error_details = self._format_error(error, context)
-
-        if self.discord_webhook_url:
-            self._send_discord(error_details)
-
-        if self.email_enabled:
-            self._send_email(error_details, context)
+        self._send_discord(error_details)
 
     def notify_restart(self, restart_count: int, last_error: Optional[str] = None):
         """Send notification when bot is attempting to restart."""
+        if not self.discord_webhook_url:
+            return
+
         message = f"Bot restart attempt #{restart_count}"
         if last_error:
             message += f"\n\nLast error: {last_error}"
 
-        if self.discord_webhook_url:
-            self._send_discord_simple(message, "warning")
+        self._send_discord_simple(message, "warning")
 
     def notify_fatal(self, message: str):
         """Send notification for fatal errors that prevent restart."""
-        if self.discord_webhook_url:
-            self._send_discord_simple(f"FATAL: {message}", "error")
+        if not self.discord_webhook_url:
+            return
 
-        if self.email_enabled:
-            self._send_email(message, "FATAL ERROR")
+        self._send_discord_simple(f"FATAL: {message}", "error")
 
     def _format_error(self, error: Exception, context: str) -> str:
         """Format error with full traceback."""
@@ -121,29 +107,3 @@ Traceback:
             response.raise_for_status()
         except Exception as e:
             logger.error(f"Failed to send Discord notification: {e}")
-
-    def _send_email(self, error_details: str, subject_prefix: str):
-        """Send error details via email."""
-        try:
-            smtp_host = os.getenv('SMTP_HOST')
-            smtp_port = int(os.getenv('SMTP_PORT'))
-            smtp_username = os.getenv('SMTP_USERNAME')
-            smtp_password = os.getenv('SMTP_PASSWORD')
-            to_email = os.getenv('NOTIFICATION_EMAIL')
-
-            msg = MIMEMultipart()
-            msg['From'] = smtp_username
-            msg['To'] = to_email
-            msg['Subject'] = f"[Trollabot] {subject_prefix}"
-
-            body = MIMEText(error_details, 'plain')
-            msg.attach(body)
-
-            with smtplib.SMTP(smtp_host, smtp_port) as server:
-                server.starttls()
-                server.login(smtp_username, smtp_password)
-                server.send_message(msg)
-
-            logger.debug("Email notification sent")
-        except Exception as e:
-            logger.error(f"Failed to send email notification: {e}")

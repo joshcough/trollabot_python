@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 
 @dataclass
 class TestAlertAction(Action):
-    """Test the Discord/Email notification system."""
+    """Test the Discord notification system."""
 
     @property
     def permission(self) -> Permission:
@@ -36,7 +36,7 @@ class TestAlertAction(Action):
 
             return RespondWithResponse(
                 self.channel_name,
-                "Test notification sent! Check your Discord/Email."
+                "Test notification sent! Check your Discord."
             )
         except Exception as e:
             logger.error(f"Failed to send test alert: {e}", exc_info=True)
@@ -53,7 +53,7 @@ def alert_command_body(channel_name: ChannelName, username: str, _: None) -> Act
     return TestAlertAction(channel_name, username)
 
 
-alert_help: str = "!alert - Test Discord/Email notifications (God only)"
+alert_help: str = "!alert - Test Discord notifications (God only)"
 
 alert_command: BotCommand = buildCommand("alert", success(None), alert_command_body, alert_help)
 

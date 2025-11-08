@@ -14,12 +14,13 @@ The bot now includes:
 - Circuit breaker: stops after 10 restarts in 60 seconds to prevent infinite loops
 - Graceful shutdown on SIGTERM/SIGINT signals
 
-Notifications are sent via Discord and/or Email when:
+Notifications are sent to Discord when:
 - Bot crashes with full error traceback
 - Bot attempts to restart
 - Fatal error prevents restart
 
-Configure notifications in .env file - see .env.example for details.
+Configure DISCORD_WEBHOOK_URL in Heroku config vars - see .env.example for details.
+Test with !alert command (God-only permission).
 
 ---
 
