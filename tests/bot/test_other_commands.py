@@ -49,5 +49,5 @@ def test_help_command(db_api, test_stream):
 
 def test_commands_command(db_api, test_stream):
     response = test_stream.send("!commands", Permission.ANYONE)
-    expected = "!join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !player, !opponent, !count, !addCounter, !deleteCounter, !incCounter, !addc, !delc, !help, !commands"
+    expected = "!alert, !join, !part, !print_streams, !quote, !addQuote, !delQuote, !score, !player, !opponent, !count, !addCounter, !deleteCounter, !incCounter, !addc, !delc, !help, !commands"
     assert response == RespondWithResponse(test_stream.channel, expected)
