@@ -11,6 +11,7 @@ from bot.trollabot.commands.base.bot_command import BotCommand, buildCommand
 from bot.trollabot.commands.base.parsing import name_parser, case_insensitive_str
 from bot.trollabot.commands.base.permission import Permission, get_permission_level
 from bot.trollabot.commands.base.response import Response, RespondWithResponse
+from bot.trollabot.commands.admin import admin_commands
 from bot.trollabot.commands.counters import counter_commands
 from bot.trollabot.commands.quotes import quote_commands
 from bot.trollabot.commands.scores import score_commands
@@ -78,6 +79,7 @@ commands_command: BotCommand = buildCommand("commands", success(None), commands_
 # other: buildInfo
 
 commands: list[BotCommand] = \
+    admin_commands + \
     stream_commands + \
     quote_commands + \
     score_commands + \

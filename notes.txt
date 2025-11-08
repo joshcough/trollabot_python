@@ -1,16 +1,27 @@
-to install, i have to do:
-
+To install packages, use:
 `python3 -m pip install library-name`
 
-for some reason, other commands dont seem to work properly and i end up getting no module found errors or wahtever.
+For some reason, other commands don't seem to work properly and result in "module not found" errors.
 
+---
 
-2024-03-09T19:46:54.276375+00:00 app[worker.1]: Getting random quote
-2024-03-09T19:46:54.278251+00:00 app[worker.1]: An error occurred: (psycopg2.errors.InFailedSqlTransaction) current transaction is aborted, commands ignored until end of transaction block
-2024-03-09T19:46:54.278252+00:00 app[worker.1]:
-2024-03-09T19:46:54.278253+00:00 app[worker.1]: [SQL: SELECT quotes.qid AS quotes_qid, quotes.text AS quotes_text, quotes.channel AS quotes_channel, quotes.added_by AS quotes_added_by, quotes.added_at AS quotes_added_at, quotes.deleted AS quotes_deleted, quotes.deleted_by AS quotes_deleted_by, quotes.deleted_at AS quotes_deleted_at
-2024-03-09T19:46:54.278254+00:00 app[worker.1]: FROM quotes JOIN streams ON streams.name = quotes.channel
-2024-03-09T19:46:54.278255+00:00 app[worker.1]: WHERE streams.name = %(name_1)s AND quotes.deleted = false ORDER BY random()
-2024-03-09T19:46:54.278255+00:00 app[worker.1]:  LIMIT %(param_1)s]
-2024-03-09T19:46:54.278256+00:00 app[worker.1]: [parameters: {'name_1': 'artofthetroll', 'param_1': 1}]
-2024-03-09T19:46:54.278256+00:00 app[worker.1]: (Background on this error at: https://sqlalche.me/e/20/2j85)
+## Auto-Restart Implementation (2024)
+
+The bot now includes:
+- Automatic reconnection on IRC disconnects (2 second delay)
+- Automatic restart on crashes (10 second delay)
+- Fresh database session on each restart (fixes old transaction error issues)
+- Circuit breaker: stops after 10 restarts in 60 seconds to prevent infinite loops
+- Graceful shutdown on SIGTERM/SIGINT signals
+
+Notifications are sent via Discord and/or Email when:
+- Bot crashes with full error traceback
+- Bot attempts to restart
+- Fatal error prevents restart
+
+Configure notifications in .env file - see .env.example for details.
+
+---
+
+## Old Issues (FIXED)
+2024-03-09: InFailedSqlTransaction error - FIXED by creating fresh database session on each restart
