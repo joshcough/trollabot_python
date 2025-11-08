@@ -89,8 +89,8 @@ def run_bot(conn_str, on_engine_create):
             # Setup IRC connection
             reactor, connection = setup_connection(irc_config=IrcConfig())
 
-            # Create bot instance and start
-            _: TwitchIRCBot = TwitchIRCBot(connection, db_api)
+            # Create bot instance and start (only greet on first connect)
+            _: TwitchIRCBot = TwitchIRCBot(connection, db_api, is_first_connect=(restart_count == 1))
 
             logger.info("Bot connected, processing messages...")
             reactor.process_forever()

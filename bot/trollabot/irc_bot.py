@@ -14,9 +14,10 @@ from bot.trollabot.messages import message_from_event
 logger = get_logger(__name__)
 
 class TwitchIRCBot:
-    def __init__(self, connection, db_api: DB_API):
+    def __init__(self, connection, db_api: DB_API, is_first_connect: bool = True):
         self.connection = connection
         self.db_api = db_api
+        self.is_first_connect = is_first_connect
         self.channels = db_api.streams.get_joined_streams()
         logger.info(f'channels: {self.channels}')
 
@@ -35,7 +36,9 @@ class TwitchIRCBot:
         for channel in self.channels:
             if irc.client.is_channel(channel.channel_name().as_irc()):
                 connection.join(channel.channel_name().as_irc())
-                connection.privmsg(channel.channel_name().as_irc(), "Hello ladies, I'm back.")
+                # Only greet on first connect, not on auto-reconnects
+                if self.is_first_connect:
+                    connection.privmsg(channel.channel_name().as_irc(), "Hello ladies, I'm back.")
 
     # def on_join(connection, event):
     #     logger.error(f"on_join {connection} {event}")
