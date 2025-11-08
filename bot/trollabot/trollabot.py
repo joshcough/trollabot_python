@@ -16,13 +16,21 @@ logger = get_logger(__name__)
 
 # Global flag for graceful shutdown
 shutdown_requested = False
+current_reactor = None
 
 
 def signal_handler(signum, frame):
     """Handle shutdown signals gracefully."""
-    global shutdown_requested
-    logger.info('Shutdown signal received, will stop after current iteration...')
+    global shutdown_requested, current_reactor
+    logger.info('Shutdown signal received, stopping bot...')
     shutdown_requested = True
+
+    # Stop the reactor to exit process_forever()
+    if current_reactor:
+        try:
+            current_reactor.disconnect_all("Shutdown requested")
+        except Exception as e:
+            logger.error(f"Error disconnecting reactor during shutdown: {e}")
 
 
 def run_bot(conn_str, on_engine_create):
@@ -59,6 +67,7 @@ def run_bot(conn_str, on_engine_create):
     restart_times = []
 
     while not shutdown_requested:
+        global current_reactor
         db_session: Session = None
         reactor = None
 
@@ -88,6 +97,7 @@ def run_bot(conn_str, on_engine_create):
 
             # Setup IRC connection
             reactor, connection = setup_connection(irc_config=IrcConfig())
+            current_reactor = reactor  # Store globally for signal handler
 
             # Create bot instance and start (only greet on first connect)
             _: TwitchIRCBot = TwitchIRCBot(connection, db_api, is_first_connect=(restart_count == 1))
@@ -148,6 +158,9 @@ def run_bot(conn_str, on_engine_create):
             time.sleep(10)
 
         finally:
+            # Clear global reactor reference
+            current_reactor = None
+
             # Always close the database session
             if db_session:
                 try:
