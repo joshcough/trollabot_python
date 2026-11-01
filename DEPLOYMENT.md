@@ -51,7 +51,7 @@ Optional daily check on your Mac (logs to `~/Library/Logs/trollabot-neon-usage.l
 pops a notification if the projection is over 80 or the check fails). Run once to install:
 
 ```bash
-(crontab -l 2>/dev/null; echo '7 9 * * * PATH=/opt/homebrew/bin:/usr/bin:/bin; out=$(python3 ~/work/trollabot_all/trollabot_python/scripts/neon_usage.py 2>&1); rc=$?; echo "$out" >> ~/Library/Logs/trollabot-neon-usage.log; [ $rc -ne 0 ] && osascript -e "display notification \"$out\" with title \"Trollabot Neon usage\""') | crontab -
+(crontab -l 2>/dev/null; echo '7 9 * * * export PATH=/opt/homebrew/bin:/usr/bin:/bin; out=$(python3 ~/work/trollabot_all/trollabot_python/scripts/neon_usage.py 2>&1); rc=$?; echo "$out" >> ~/Library/Logs/trollabot-neon-usage.log; [ $rc -ne 0 ] && osascript -e "display notification \"$out\" with title \"Trollabot Neon usage\""') | crontab -
 ```
 
 Remove with `crontab -e` (delete that line).
