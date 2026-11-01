@@ -10,7 +10,7 @@ Trollabot runs on **Fly.io** with a **Neon** Postgres database. Moved off Heroku
 | Bot | Fly.io app `trollabot` | org `personal`, region `ord` (Chicago), 1 machine, shared-cpu-1x, 256MB |
 | Database | Neon project `trollabot` | id `polished-mountain-89386461`, org Trollabot (`org-broad-glade-81634571`), region aws-us-east-2 (Ohio), branch `main`, db `neondb` |
 | Accounts | Fly.io, Neon | both under joshcough@gmail.com |
-| Code | GitHub `joshcough/trollabot_python` | deploy from `main` |
+| Code | GitHub `joshcough/trollabot_python` | deploy from `main` (Fly deploys from your local checkout; pushing to GitHub does not deploy) |
 
 Dashboards:
 - Fly: https://fly.io/apps/trollabot
@@ -20,8 +20,10 @@ Dashboards:
 ## Cost
 
 - Fly: ~$2/mo for the machine (pay-as-you-go, billed monthly to the card on the account).
-  Fly has no free tier; a new account gets a short trial (2 hours of machine time or
-  7 days) and then machines stop until a credit card is added.
+  Fly has no free tier. Without a card on file, trial machines are stopped after
+  **5 minutes** ("Trial machine stopping. To run for longer than 5m0s, add a credit
+  card by visiting https://fly.io/trial"). This happened on cutover day; a card must
+  stay on the account or the bot goes down.
 - Neon: free plan (0.5GB storage; the DB is ~9MB). No card needed. The DB suspends
   after ~5 min idle and wakes on the next query (~1s).
 
@@ -69,8 +71,10 @@ psql "$NEON_URL"
 pg_dump -Fc --no-owner --no-acl "$NEON_URL" -f trollabot-$(date +%F).dump   # backup
 ```
 
-If `.env.local` is missing: `neon login`, then `neon init` in the repo root (or copy the
-connection string from the Neon console).
+If `.env.local` is missing, copy the connection string from the Neon console, or
+`neon login` then `neon env pull` in the repo root. (Avoid re-running `neon init`: it
+adds Node files — `neon.ts`, `package.json`, `node_modules/` — that this Python repo
+doesn't use; they were deleted after setup.)
 
 ## Code notes
 
@@ -81,15 +85,53 @@ connection string from the Neon console).
 
 ## Heroku (old)
 
-App `trollabot`: worker scaled to 0 on 2026-11-01. Its `heroku-postgresql`
-essential-1 database (~$9/mo) is kept as a rollback until deleted.
+App `trollabot` (git remote `heroku`): worker scaled to 0 on 2026-11-01. Its
+`heroku-postgresql` essential-1 database (~$9/mo) was left in place as a rollback.
+`Procfile` (`worker: python main.py`) and `runtime.txt` are kept in the repo so the
+code can still run on Heroku unchanged.
 
-Rollback: `fly scale count 0 -a trollabot && heroku ps:scale worker=1 -a trollabot`
-(anything written to Neon since cutover is not in the Heroku DB).
-
-Decommission once stable:
+Decommission once sure:
 
 ```bash
 heroku addons:destroy heroku-postgresql -a trollabot
 heroku apps:destroy trollabot
 ```
+
+### Going back to Heroku (emergency only)
+
+The code runs on both platforms unchanged: `main.py` reads `DATABASE_URL`,
+`BOT_TOKEN`, `DISCORD_WEBHOOK_URL`, and `postgres://` URLs are rewritten automatically.
+Always stop the Fly bot first so two bots aren't in chat.
+
+**If the Heroku app still exists:**
+
+```bash
+fly scale count 0 -a trollabot
+# copy current data back (Heroku DB is frozen at cutover, 2026-11-01)
+NEON_URL="$(grep '^DATABASE_URL_UNPOOLED=' .env.local | cut -d= -f2- | tr -d '"')"
+HEROKU_URL="$(heroku config:get DATABASE_URL -a trollabot)"
+pg_dump -Fc --no-owner --no-acl "$NEON_URL" -f back.dump
+pg_restore --clean --if-exists --no-owner --no-acl -d "$HEROKU_URL" back.dump
+heroku ps:scale worker=1 -a trollabot
+```
+
+Or skip the copy and point Heroku at Neon directly (no DB move, no $9 DB):
+`heroku config:set DATABASE_URL="$NEON_URL" -a trollabot` — this requires detaching
+the Heroku Postgres add-on first, since it owns the `DATABASE_URL` var.
+
+**If the Heroku app was deleted:**
+
+```bash
+fly scale count 0 -a trollabot
+heroku create trollabot            # or another name if taken; updates the `heroku` remote
+heroku config:set ENV=prod BOT_TOKEN=... DISCORD_WEBHOOK_URL=... DATABASE_URL="$NEON_URL"
+git push heroku main
+heroku ps:scale worker=1:basic
+```
+
+That keeps Neon as the database (~$7/mo total). For a Heroku-hosted DB instead,
+`heroku addons:create heroku-postgresql:essential-0` and `pg_restore` the Neon dump
+into it as above.
+
+Get `BOT_TOKEN` / `DISCORD_WEBHOOK_URL` values from wherever you keep them; Fly
+secrets can't be read back. If lost: `fly ssh console -a trollabot -C "printenv BOT_TOKEN"`.
