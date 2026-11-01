@@ -78,9 +78,15 @@ doesn't use; they were deleted after setup.)
 
 ## Code notes
 
-- `create_engine(..., pool_pre_ping=True)` is required: Neon's free tier suspends idle
-  databases, and pre-ping replaces dead connections instead of erroring. Keep it on
-  every `create_engine` call (the `one-connection-per-stream` branch has two).
+- Neon's free tier suspends idle databases (~5 min) and drops open connections. Two
+  things together keep the bot working through that:
+  - `create_engine(..., pool_pre_ping=True)` tests a pooled connection on checkout and
+    reconnects if it's dead. Keep it on every `create_engine` call (the
+    `one-connection-per-stream` branch has two).
+  - `TwitchIRCBot.on_pubmsg` closes the session after every message, returning the
+    connection to the pool. Without that, the session holds one connection forever,
+    pre-ping never runs, and after the first drop every DB command fails with
+    "Can't reconnect until invalid transaction is rolled back" (seen on cutover day).
 - Twitch IRC is plain port 6667; Postgres is 5432.
 
 ## Heroku (old)
