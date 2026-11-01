@@ -20,6 +20,8 @@ class TwitchIRCBot:
         self.is_first_connect = is_first_connect
         self.channels = db_api.streams.get_joined_streams()
         logger.info(f'channels: {self.channels}')
+        # Release the connection; see on_pubmsg
+        db_api.session.close()
 
         # Bind event handlers to the connection object
         self.connection.add_global_handler("welcome", self.on_connect)
@@ -59,6 +61,10 @@ class TwitchIRCBot:
         except Exception as e:
             # TODO: maybe we should send an error back to the user. But not sure yet.
             logger.error(f"An error occurred: {e}")
+        finally:
+            # Return the connection to the pool after every message. Neon suspends idle
+            # databases and drops connections; a fresh checkout gets pool_pre_ping'd.
+            self.db_api.session.close()
 
     def process_response(self, connection, response: Response) -> None:
         if isinstance(response, RespondWithResponse):

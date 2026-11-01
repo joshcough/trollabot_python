@@ -7,6 +7,7 @@ from app.trollabot.database.user_commands import UserCommandsDB
 
 class DB_API:
     def __init__(self, db_session):
+        self.session = db_session
         self.streams = StreamsDB(db_session)
         self.quotes = QuotesDB(db_session)
         self.counters = CountersDB(db_session)
