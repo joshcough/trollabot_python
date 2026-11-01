@@ -27,6 +27,35 @@ Dashboards:
 - Neon: free plan (0.5GB storage; the DB is ~9MB). No card needed. The DB suspends
   after ~5 min idle and wakes on the next query (~1s).
 
+### Neon compute budget (watch this)
+
+The free plan allows **100 CU-hours per month**; if it runs out, Neon suspends the
+database until the next period (the bot loses its DB). Usage counts only while the
+database is awake, i.e. while chat is using DB commands plus 5 min after the last one.
+The compute is pinned at 0.25 CU (min = max), so 100 CU-hours = **400 awake hours/month,
+~13 h/day**. Don't add a keep-alive ping: 24/7 at 0.25 CU is ~182 CU-hours.
+
+Check usage and the month's projection:
+
+```bash
+scripts/neon_usage.py
+# 2026-11-01 15:50Z  used 0.14 CU-h in 0.04 days (3.45/day)  projected 101.2 of 100 by 2026-12-01
+```
+
+Warning sign: more than ~3.3 CU-h/day on normal stream days. Ignore the first day; it
+includes migration testing. If the projection stays over ~80, switch the DB (decided
+fallback: the Let's Play Scrabble Heroku Postgres, in its own `trollabot` schema; note
+Heroku may rotate that DB's credentials, and the Fly secret would need updating by hand).
+
+Optional daily check on your Mac (logs to `~/Library/Logs/trollabot-neon-usage.log`,
+pops a notification if the projection is over 80 or the check fails). Run once to install:
+
+```bash
+(crontab -l 2>/dev/null; echo '7 9 * * * PATH=/opt/homebrew/bin:/usr/bin:/bin; out=$(python3 ~/work/trollabot_all/trollabot_python/scripts/neon_usage.py 2>&1); rc=$?; echo "$out" >> ~/Library/Logs/trollabot-neon-usage.log; [ $rc -ne 0 ] && osascript -e "display notification \"$out\" with title \"Trollabot Neon usage\""') | crontab -
+```
+
+Remove with `crontab -e` (delete that line).
+
 ## Secrets (Fly)
 
 Set on the Fly app; view names with `fly secrets list -a trollabot`.
