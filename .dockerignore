@@ -1,0 +1,16 @@
+.git
+.idea
+.claude
+.omc
+venv
+__pycache__/
+*.pyc
+*.log
+*.dump
+.env
+.pytest_cache/
+old/
+tests/
+node_modules/
+.env.local
+.neon

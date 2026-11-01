@@ -1,0 +1,17 @@
+# Trollabot on Fly.io: a single always-on worker (IRC bot), no HTTP service.
+app = "trollabot"
+primary_region = "ord"
+
+# Bot handles SIGTERM for graceful shutdown (Fly defaults to SIGINT)
+kill_signal = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ENV = "prod"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"

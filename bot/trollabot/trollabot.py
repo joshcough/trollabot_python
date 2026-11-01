@@ -53,7 +53,8 @@ def run_bot(conn_str, on_engine_create):
     if conn_str.startswith("postgres://"):
         conn_str = conn_str.replace("postgres://", "postgresql://", 1)
 
-    engine = create_engine(conn_str, isolation_level="REPEATABLE READ")
+    # pool_pre_ping: Neon suspends idle DBs, so check connections before use
+    engine = create_engine(conn_str, isolation_level="REPEATABLE READ", pool_pre_ping=True)
     on_engine_create(engine)
     Base.metadata.create_all(engine)
 
