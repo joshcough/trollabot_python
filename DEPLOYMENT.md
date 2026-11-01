@@ -78,8 +78,10 @@ doesn't use; they were deleted after setup.)
 
 ## Code notes
 
-- Neon's free tier suspends idle databases (~5 min) and drops open connections. Two
-  things together keep the bot working through that:
+- Neon drops connections in two ways: it suspends the database after 5 min with no
+  queries (free plan, not configurable), and it kills any session left idle inside a
+  transaction for 5 min (`idle_in_transaction_session_timeout=300000ms`). The second
+  one caused the outage on cutover day. Two things together keep the bot working:
   - `create_engine(..., pool_pre_ping=True)` tests a pooled connection on checkout and
     reconnects if it's dead. Keep it on every `create_engine` call (the
     `one-connection-per-stream` branch has two).
