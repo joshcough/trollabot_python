@@ -42,8 +42,11 @@ scripts/neon_usage.py
 # 2026-11-01 15:50Z  used 0.14 CU-h in 0.04 days (3.45/day)  projected 101.2 of 100 by 2026-12-01
 ```
 
-Warning sign: more than ~3.3 CU-h/day on normal stream days. Ignore the first day; it
-includes migration testing. If the projection stays over ~80, switch the DB (decided
+Real usage after the first month: ~0.18 CU-h/day, projected ~5.7 of 100 (2026-11-25),
+so Neon free is comfortably enough.
+
+Warning sign: more than ~3.3 CU-h/day on normal stream days. If the projection stays
+over ~80, switch the DB (decided
 fallback: the Let's Play Scrabble Heroku Postgres, in its own `trollabot` schema; note
 Heroku may rotate that DB's credentials, and the Fly secret would need updating by hand).
 
@@ -132,41 +135,16 @@ doesn't use; they were deleted after setup.)
 
 ## Heroku (old)
 
-App `trollabot` (git remote `heroku`): worker scaled to 0 on 2026-11-01. Its
-`heroku-postgresql` essential-1 database (~$9/mo) was left in place as a rollback.
-`Procfile` (`worker: python main.py`) and `runtime.txt` are kept in the repo so the
-code can still run on Heroku unchanged.
-
-Decommission once sure:
-
-```bash
-heroku addons:destroy heroku-postgresql -a trollabot
-heroku apps:destroy trollabot
-```
+App `trollabot` and its add-ons (Postgres, Papertrail) were **deleted on 2026-11-25**,
+after a final backup (`~/backups/trollabot/heroku-final-2026-11-25.dump`). The `heroku`
+git remote is gone too. `Procfile` (`worker: python main.py`) and `runtime.txt` are
+kept in the repo so the code can still run on Heroku unchanged.
 
 ### Going back to Heroku (emergency only)
 
 The code runs on both platforms unchanged: `main.py` reads `DATABASE_URL`,
 `BOT_TOKEN`, `DISCORD_WEBHOOK_URL`, and `postgres://` URLs are rewritten automatically.
 Always stop the Fly bot first so two bots aren't in chat.
-
-**If the Heroku app still exists:**
-
-```bash
-fly scale count 0 -a trollabot
-# copy current data back (Heroku DB is frozen at cutover, 2026-11-01)
-NEON_URL="$(grep '^DATABASE_URL_UNPOOLED=' .env.local | cut -d= -f2- | tr -d '"')"
-HEROKU_URL="$(heroku config:get DATABASE_URL -a trollabot)"
-pg_dump -Fc --no-owner --no-acl "$NEON_URL" -f back.dump
-pg_restore --clean --if-exists --no-owner --no-acl -d "$HEROKU_URL" back.dump
-heroku ps:scale worker=1 -a trollabot
-```
-
-Or skip the copy and point Heroku at Neon directly (no DB move, no $9 DB):
-`heroku config:set DATABASE_URL="$NEON_URL" -a trollabot` — this requires detaching
-the Heroku Postgres add-on first, since it owns the `DATABASE_URL` var.
-
-**If the Heroku app was deleted:**
 
 ```bash
 fly scale count 0 -a trollabot
@@ -177,8 +155,8 @@ heroku ps:scale worker=1:basic
 ```
 
 That keeps Neon as the database (~$7/mo total). For a Heroku-hosted DB instead,
-`heroku addons:create heroku-postgresql:essential-0` and `pg_restore` the Neon dump
-into it as above.
+`heroku addons:create heroku-postgresql:essential-0` and `pg_restore` a Neon dump
+into it (backup and restore commands are under "Everyday commands").
 
 Get `BOT_TOKEN` / `DISCORD_WEBHOOK_URL` values from wherever you keep them; Fly
 secrets can't be read back. If lost: `fly ssh console -a trollabot -C "printenv BOT_TOKEN"`.
