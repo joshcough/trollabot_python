@@ -97,8 +97,18 @@ Database:
 ```bash
 NEON_URL="$(grep '^DATABASE_URL_UNPOOLED=' .env.local | cut -d= -f2- | tr -d '"')"
 psql "$NEON_URL"
-pg_dump -Fc --no-owner --no-acl "$NEON_URL" -f trollabot-$(date +%F).dump   # backup
+# backup: needs pg_dump >= Neon's server version (18); Homebrew's postgresql@16 is too
+# old, so use the keg-only libpq client (`brew install libpq`)
+/opt/homebrew/opt/libpq/bin/pg_dump -Fc --no-owner --no-acl "$NEON_URL" \
+  -f ~/backups/trollabot/neon-$(date +%F).dump
 ```
+
+Backups live in `~/backups/trollabot/` (laptop only):
+- `heroku-final-2026-11-25.dump`: the Heroku DB as frozen at cutover (3042 quotes),
+  taken before deleting the Heroku add-on. Heroku's own backups were deleted with it.
+- `neon-2026-11-25.dump`: live data on that date (3051 quotes).
+
+Restore into any Postgres: `pg_restore --clean --if-exists --no-owner --no-acl -d "$URL" <file>`.
 
 If `.env.local` is missing, copy the connection string from the Neon console, or
 `neon login` then `neon env pull` in the repo root. (Avoid re-running `neon init`: it
